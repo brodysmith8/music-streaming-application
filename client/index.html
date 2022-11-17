@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>muzika</title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;500;700;900&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div id="body-wrapper">
+        <div id="header">
+            <div id="header-main">
+                <div id="header-logo">
+                    <p>M</p>
+                    <p class="small-caps-logo">UZIKA</p>
+                </div>
+                <div id="header-search-bar">
+                    <input class="search-bar" type="text" placeholder="search" autocomplete="off"/>
+                    <select name="search-filter" id="search-filter-select">
+                        <option value="tracks">tracks</option>
+                        <option value="artists">artists</option>
+                        <option value="albums">albums</option>
+                    </select> 
+                    <button class="search-button">OK</button>
+                </div>
+                <div id="header-log-in">
+                    <p><a class="log-in-btn">CREATE PLAYLIST</a></p>
+                </div>
+            </div>
+        </div>
+        <div id="content">
+            <div id="content-playlists">
+                <div class="content-top-spacer">Playlists</div>
+                <div id="content-playlists-display">
+                    <div class="content-playlists-display-box">
+                        <div class="content-playlists-display-box-cover-wrapper">
+                            <img class="playlist-image" src="assets/images/placeholder.png" />
+                        </div>
+                        <div class="content-playlists-display-box-info-wrapper">
+                            <p class="playlist-title">Playlist Title</p>
+                            <p class="playlist-artist">By playlist creator</p>
+                            <p class="playlist-last-modified">Last modified date</p>
+                        </div>
+                    </div> <!-- will handle this programmatically -->
+                </div>
+            </div>
+            <div id="content-playlist-content-spacer"></div>
+            <div id="content-main-content">
+                <div class="content-top-spacer">Search Results</div>
+                <div id="content-main-display">
+                    <div class="content-artists-display-box">
+                        <div class="content-artists-display-box-cover-wrapper">
+                            <img class="artist-image" src="assets/images/placeholder.png" />
+                        </div>
+                        <div class="content-artists-display-box-info-wrapper">
+                            <p class="song-title">Song Title</p>
+                            <p class="artist-name">By artist</p>
+                            <p class="song-listens"># listens</p>
+                        </div>
+                    </div> <!-- will handle this programmatically -->
+                </div>
+            </div>
+        </div>
+        <div id="footer">
+            <p id="footer-text">(c) Brody Smith 2022</p>
+        </div>
+    </div>
+
+    <script src="assets/js/index.js"></script>
+</body>
+
+</html>
