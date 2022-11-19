@@ -4,7 +4,7 @@
 // AWS machine. Thus, we need to use the domain name of the AWS machine to
 // connect to the backend. 
 
-const currentApiServerIpAddress = 'iphere';
+const currentApiServerIpAddress = 'localhost';
 
 let filterMode = "";
 let maxPlaylistId = 0;
@@ -130,7 +130,7 @@ function displayPlaylist(playlistInfo) {
     // create cover wrapper 
     const coverWrapper = document.createElement('div');
     coverWrapper.className = "content-playlists-display-box-cover-wrapper";
-    coverWrapper.innerHTML = '<img class=\"playlist-image\" src=\"client/assets/images/placeholder.png\" />';
+    coverWrapper.innerHTML = '<img class=\"playlist-image\" src=\"../assets/images/placeholder.png\" />';
 
     // create info wrapper
     const infoWrapper = document.createElement('div');
@@ -249,7 +249,7 @@ function displaySong(data) {
             // create cover wrapper 
             const coverWrapper = document.createElement('div');
             coverWrapper.className = "content-artists-display-box-cover-wrapper";
-            coverWrapper.innerHTML = '<img class=\"playlist-image\" src=\"client/assets/images/placeholder.png\" />';
+            coverWrapper.innerHTML = '<img class=\"playlist-image\" src=\"../assets/images/placeholder.png\" />';
 
             // create info wrapper
             const infoWrapper = document.createElement('div');
