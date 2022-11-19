@@ -11,9 +11,9 @@ I've been writing all morning - I kind of went too deep into things that are onl
 
 2. use pgAdmin 4. Click "servers" in the left pane, log in with your postgres user password, expand databases, expand api. Right click api, and click "restore". Have the filename input point toward [this file](https://uwoca-my.sharepoint.com/:u:/g/personal/bsmit272_uwo_ca/EdQywadmGzlLhhDdLqrRU9IBhV_x7SrnwDg-4F3r8oSp2w?e=UJbV2R) (download it onto your pc first obviously) and just leave everything else alone and click restore. It will say it fails, but it's because you guys don't have a user named "brody" which is the postgres username I created my local db with. This will copy my local db to both of your computers. Note that they are not linked; these are static databases. Changes I make on my local computer wont affect either of you and vice versa.  
 
-You can verify data is there by expanding "schemas" under "api" database in the left pane, then "tables", then right click whatever table and click "view/edit data" -> all rows. They all should be the same number of rows minus one (because the tables don't have the header rows like the csvs do) as the csv files.  
+    You can verify data is there by expanding "schemas" under "api" database in the left pane, then "tables", then right click whatever table and click "view/edit data" -> all rows. They all should be the same number of rows minus one (because the tables don't have the header rows like the csvs do) as the csv files.  
 
-I want to reoptimize this database so we can use more SQL functionality (I didn't really set up foreign keys properly so there's a lot of missing links rn). I will do this today or tomorrow after I break ground on 3309.  
+    I want to reoptimize this database so we can use more SQL functionality (I didn't really set up foreign keys properly so there's a lot of missing links rn). I will do this today or tomorrow after I break ground on 3309.  
 
 3. To make the web app work, open two terminals, cd to the root folder of this repository on both terminals. On one, cd into "server" folder. Write `npm install package.json`.  
 
