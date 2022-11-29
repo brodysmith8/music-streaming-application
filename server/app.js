@@ -8,16 +8,18 @@ const express = require('express');
 const cors = require('cors');
 const sanitizeHtml = require('sanitize-html');
 const { Pool } = require('pg');
+const argon2 = require("argon2");
 
 const app = express();
 
 // uses environment variables by default. Set this up when posturing to move to AWS 
 // see this when moving to AWS https://node-postgres.com/features/connecting
+// note: if this doesnt work contact me and I will add your IP to the whitelist
 const pool = new Pool({
     user: 'postgres',
-    host: 'localhost',
+    host: 'se3316.cdu9h2cspncm.us-east-1.rds.amazonaws.com',
     database: 'api',
-    password: 'pw goes here',
+    password: 'LPLtEQ4Sf4',
     port: 5432
 });
 
@@ -33,6 +35,80 @@ app.use(cors({
 
 app.get('/api', (req, res) => {
     res.send('Please add /tracks, /albums, /artist, or /genre followed by a resource reference after your request.');
+});
+
+// L4 Requirement 2: Local Authentication
+// is it part of the /api/? 
+app.post("/user/create", async (req, res) => {
+    let hash;
+    const email = req.body.email_address;
+    const username = req.body.username;
+    const password = req.body.password;
+
+    try {
+        hash = await argon2.hash(password);
+        const query = "INSERT INTO \"user\" (username, password, email_address) VALUES ($1, $2, $3)";
+        const result = await pool.query(query, [username, hash, email]);
+        if (result.rowCount == 1) {
+            res.send(username);
+        } else {
+            res.send("User not created")
+        }
+    } catch (err) {
+        console.log("Err: " + err);
+        if (err.message.search("duplicate") != -1) {
+            res.status(409).send("Username taken")
+        }
+    }
+});
+
+app.post("/user/login", async (req, res) => {
+    const username = req.body.username;
+    const email = req.body.email_address;
+    const password = req.body.password;
+    try {
+        const query = "SELECT password FROM \"user\" WHERE (username = $1 OR email_address = $2)"
+        const result = await pool.query(query, [username, email]);
+        if (result.rowCount == 1) {
+            if (await argon2.verify(result.rows[0].password, password)) {
+                res.send("success");
+            } else {
+                res.send("password incorrect");
+            }
+        } else {
+            res.status(404).send("Password not found");
+        }
+    } catch (err) {
+        console.log("Err: " + err);
+    }
+});
+
+app.post("/user/change_password", async (req, res) => {
+    const username = req.body.username;
+    const password = req.body.old_password;
+    const new_p = req.body.new_password;
+    const email = req.body.email_address;
+
+    try {
+        const old_p = await pool.query("SELECT password FROM \"user\" WHERE (username = $1 OR email_address = $2)", [username, email])
+        if (old_p.rowCount == 1) {
+            console.log("abc: " + old_p.rows[0].password);
+            if (argon2.verify(old_p.rows[0].password, password)) {
+                const query = "UPDATE \"user\" SET password = $1 WHERE (username = $2 OR email_address = $3)";
+                const hash = await argon2.hash(new_p);
+                const response = await pool.query(query, [hash, username, email]);
+                if (response.rowCount == 1) {
+                    res.send("successful");
+                }
+            } else {
+                res.send("old password incorrect");
+            }
+        } else {
+            res.send("user not found");
+        }
+    } catch (err) {
+        console.log("err: " + err);
+    }
 });
 
 // Requirement 1: Get all genre names, IDs, parent IDs

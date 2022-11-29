@@ -4,9 +4,16 @@
 # Technologies Used
 Todo  
 
-# Getting Started  
-I've been writing all morning - I kind of went too deep into things that are only partially related and I really have to move on to 3309 soon so I don't have time today to finish the [getting started guide](GETTINGSTARTED.md), but you can read it if you want.  
+# To add RDS connection with pgAdmin 4
+1. **(Saif:)** send me your home IP and your IP when you're at Western and I will add you to the firewall whitelist
+2. Right click "servers" in the browser in the left pane
+3. Click `register` -> `server`
+4. Name it RDS (name is just a local alias and doesn't matter), click connection,
+5. In host, add the RDS endpoint: `se3316.cdu9h2cspncm.us-east-1.rds.amazonaws.com`, leave everything else alone
+6. Enter `LPLtEQ4Sf4` as the password for the `postgres` user
+7. Click save, and you should be able to access the DB. 
 
+# Getting Started  
 1. use this guide (download postgres 14, not 15) and stop before the heading "creating a table in Postgres": https://blog.logrocket.com/crud-rest-api-node-js-express-postgresql/. Ahmad it doesn't say it in the guide but you will need to change your Path environment variable by typing in "env" to the windows search bar, clicking "edit system env variables", click "environment variables" button, in the box on the bottom scroll down to "Path" and double click it. Click "new" and add `C:\Program Files\PostgreSQL\14\bin`. Restart your command prompt and `psql` should work. If it doesn't, restart and try again.  
 
 2. use pgAdmin 4. Click "servers" in the left pane, log in with your postgres user password, expand databases, expand api. Right click api, and click "restore". Have the filename input point toward [this file](https://uwoca-my.sharepoint.com/:u:/g/personal/bsmit272_uwo_ca/EdQywadmGzlLhhDdLqrRU9IBhV_x7SrnwDg-4F3r8oSp2w?e=UJbV2R) (download it onto your pc first obviously) and just leave everything else alone and click restore. It will say it fails, but it's because you guys don't have a user named "brody" which is the postgres username I created my local db with. This will copy my local db to both of your computers. Note that they are not linked; these are static databases. Changes I make on my local computer wont affect either of you and vice versa.  

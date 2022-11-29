@@ -431,10 +431,10 @@ function updatePlaylists() {
     },);
 }
 
-clearChildren(document.getElementById("content-main-display"));
+function logIn() {
+    const username = document.getElementById("username-box").value;
+    const password = document.getElementById("password-box").value;
+    console.log(username + " " + password);
+}
 
-document.getElementsByClassName('search-button')[0].addEventListener('click', search);
-document.getElementsByClassName('log-in-btn')[0].addEventListener('click', createPlaylist);
-
-
-updatePlaylists();
+document.getElementsByClassName('log-in')[0].addEventListener('click', logIn);
