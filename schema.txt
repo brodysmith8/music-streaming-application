@@ -1,0 +1,134 @@
+Artist(
+artist_id PK
+artist_active_year_begin
+artist_active_year_end
+artist_associated_labels
+artist_bio
+artist_comments
+artist_contact
+artist_date_created
+artist_donation_url
+artist_favorites
+artist_flattr_name
+artist_handle
+artist_image_file
+artist_images
+artist_latitude
+artist_location
+artist_longitude
+artist_members
+artist_name
+artist_paypal_name
+artist_related_projects
+artist_url
+artist_website
+artist_wikipedia_page
+tags)
+
+Album(
+album_id PK
+album_comments
+album_date_created
+album_date_released
+album_engineer
+album_favorites
+album_handle
+album_image_file
+album_images
+album_information
+album_listens
+album_producer
+album_title
+album_tracks
+album_type
+album_url
+artist_name
+artist_url
+tags)
+
+Track(
+track_id PK
+album_id FK references Album(album_id)
+album_title
+album_url
+artist_id FK references Artist(artist_id)
+artist_name
+artist_url
+artist_website
+license_image_file
+license_image_file_large
+license_parent_id
+license_title
+license_url
+tags
+track_bit_rate
+track_comments
+track_composer
+track_copyright_c
+track_copyright_p
+track_date_created
+track_date_recorded
+track_disc_number
+track_duration
+track_explicit
+track_explicit_notes
+track_favorites
+track_file
+track_genres
+track_image_file
+track_information
+track_instrumental
+track_interest
+track_language_code
+track_listens
+track_lyricist
+track_number
+track_publisher
+track_title
+track_url)
+
+Genre(
+genre_id PK
+#tracks
+parent
+title
+top_level)
+
+User(
+user_name PK
+password
+email_address
+is_activated
+is_verified
+is_admin)
+
+Playlist(
+playlist_id PK
+playlist_name
+running_time
+last_modified_datetime (time and date)
+description_text (can be null)
+is_private (DEFAULT True)
+average_rating
+
+PlaylistUsers(
+playlist_id PK
+username PK
+)
+
+Review(
+review_id
+user_id
+review_out_of_ten (.1 precision float)
+comment_text
+is_hidden
+)
+
+PlaylistTrack(
+playlist_id FK references Playlist(playlist_id) CPK
+track_id) FK references Track(track_id) CPK
+
+PlaylistReview(
+playlist_id FK references Playlist(playlist_id) CPK
+review_id FK references Review(review_id) CPK
+)
