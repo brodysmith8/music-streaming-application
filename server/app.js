@@ -8,7 +8,8 @@ const express = require('express');
 const cors = require('cors');
 const sanitizeHtml = require('sanitize-html');
 const { Pool } = require('pg');
-const argon2 = require("argon2");
+const argon2 = require('argon2');
+// const { auth } = require('express-openid-connect');
 
 const app = express();
 
@@ -23,10 +24,21 @@ const pool = new Pool({
     port: 5432
 });
 
+// const config = {
+//     authRequired: false,
+//     auth0Logout: true,
+//     secret: '5dfe5959c2eaec4a37902820480ffb96beb201389c981e36b47eb35a69f7e583',
+//     baseURL: 'http://localhost:3000',
+//     clientID = 'bq7eKDwPxWc2bQtDrTkLOHH2bY1L59DH',
+//     issuerBaseURL: 'https://se3316-bsmit272-aelzein2-sahma244-lab4.us.auth0.com'
+// }
+
 // add middleware into express pipeline to look at json requests 
 app.use(express.json());
 
 app.use(express.static('../client'));
+
+// app.use(auth(config));
 
 // use cors to allow cross-origin resource sharing
 app.use(cors({
@@ -47,7 +59,7 @@ app.post("/user/create", async (req, res) => {
 
     try {
         hash = await argon2.hash(password);
-        const query = "INSERT INTO \"user\" (username, password, email_address) VALUES ($1, $2, $3)";
+        const query = "INSERT INTO \"users\" (username, password, email_address) VALUES ($1, $2, $3)";
         const result = await pool.query(query, [username, hash, email]);
         if (result.rowCount == 1) {
             res.send(username);
@@ -67,7 +79,7 @@ app.post("/user/login", async (req, res) => {
     const email = req.body.email_address;
     const password = req.body.password;
     try {
-        const query = "SELECT password FROM \"user\" WHERE (username = $1 OR email_address = $2)"
+        const query = "SELECT password FROM \"users\" WHERE (username = $1 OR email_address = $2)"
         const result = await pool.query(query, [username, email]);
         if (result.rowCount == 1) {
             if (await argon2.verify(result.rows[0].password, password)) {
@@ -90,11 +102,11 @@ app.post("/user/change_password", async (req, res) => {
     const email = req.body.email_address;
 
     try {
-        const old_p = await pool.query("SELECT password FROM \"user\" WHERE (username = $1 OR email_address = $2)", [username, email])
+        const old_p = await pool.query("SELECT password FROM \"users\" WHERE (username = $1 OR email_address = $2)", [username, email])
         if (old_p.rowCount == 1) {
             console.log("abc: " + old_p.rows[0].password);
             if (argon2.verify(old_p.rows[0].password, password)) {
-                const query = "UPDATE \"user\" SET password = $1 WHERE (username = $2 OR email_address = $3)";
+                const query = "UPDATE \"users\" SET password = $1 WHERE (username = $2 OR email_address = $3)";
                 const hash = await argon2.hash(new_p);
                 const response = await pool.query(query, [hash, username, email]);
                 if (response.rowCount == 1) {
@@ -280,100 +292,85 @@ app.get('/api/artists', (req, res) => {
 });
 
 // Requirement 6: Create new playlist 
-app.post('/api/playlists/:playlist_id', (req, res) => {
+app.post('/api/playlists/create', async (req, res) => {
     // song list is in request body
     const playlistName = sanitizeHtml(req.body.playlist_name);
-    const userId = sanitizeHtml(req.body.user_id);
-    const cleanPlaylistId = sanitizeHtml(req.params.playlist_id);
+    const username = sanitizeHtml(req.body.username);
+    const description = sanitizeHtml(req.body.description); // needs to be "" in the request if not supplied
+    let isPrivate = sanitizeHtml(req.body.isPrivate); // needs to be supplied in request 
 
-    // check if playlist with playlist_id exists
-    pool.query('SELECT DISTINCT playlist_id FROM playlists WHERE playlist_id = $1', [cleanPlaylistId], (err, resp) => {
-        if (err) {
-            throw err;
-        }
-        if (resp.rows.length > 0) {
-            res.status(409).send("Playlist already exists"); // error 409 Conflict. Indicates that the request could not be completed due to a conflict with the current state of the target resource. (RFC 7231 6.5.8)  
-            return;
-        } else {
-            pool.query('INSERT INTO playlists (playlist_id, playlist_name, playlist_user, track_id) VALUES ($1, $2, $3, $4)', [cleanPlaylistId, playlistName, userId, 0]); // 0 track id means empty playlist
-            res.send(cleanPlaylistId);
-        }
-    });
+    let query = "INSERT INTO playlists (playlist_name, running_time, last_modified_datetime, description_text, is_private, average_rating) VALUES ($1, 0, $2, $3, $4, 0.0)";
+    let response = await pool.query(query, [playlistName, new Date(), description, isPrivate]);
+
+    query = "INSERT INTO playlist_users (username) VALUES ($1)";
+    response = await pool.query(query, [username]);
+    if (!response.rows[0]) {
+        res.send(playlistName);
+        return;
+    }
+
+    res.status(409).send("Conflict happened");
 });
 
 // Requirement 7: Add songs to playlist
-app.put('/api/playlists/:playlist_id', (req, res) => {
+// make sure playlist exists before calling this...
+app.put('/api/playlists/:playlist_id', async (req, res) => {
     const songList = sanitizeHtml(req.body.track_list).split(',');
     const playlistName = sanitizeHtml(req.body.playlist_name);
-    const userId = sanitizeHtml(req.body.user_id);
+    const username = sanitizeHtml(req.body.username);
     const cleanPlaylistId = sanitizeHtml(req.params.playlist_id);
 
     // DB assumption: user can only have distinct songs in a playlist; no repeats
-
-    // check if playlist with playlist_id exists
-    pool.query('SELECT DISTINCT playlist_id FROM playlists WHERE playlist_id = $1', [cleanPlaylistId], (err, resp) => {
-        if (err) {
-            throw err;
+    let query1 = "INSERT INTO playlist_tracks (playlist_id, track_id) VALUES ";
+    let query2 = "SELECT track_duration FROM tracks WHERE track_id IN (";
+    for (let i = 0; i < songList.length; i++) {
+        if (i != 0) {
+            query1 += ',';
+            query2 += ','
         }
-        if (resp.rows.length < 1) {
-            res.status(404).send("Playlist does not exist");
-            return;
-        } else {
-            // make sure playlist is empty; if not, replace all songs (seems silly to me but thats what the requirement is)
-            pool.query('SELECT playlist_id FROM playlists WHERE playlist_id = $1 AND track_id = 0', [cleanPlaylistId], (err, resp) => {
-                if (err) {
-                    throw err;
-                }
+        query1 += `(${cleanPlaylistId}, ${songList[i]})`;
+        query2 += `${songList[i]}`;
+    }
+    query2 += ')';
 
-                if (resp.rows.length > 0) {
-                    let str = 'SELECT track_id FROM tracks WHERE track_id = ' + songList[0];
-                    let result = new Array();
-                    for (let i = 1; i < songList.length; i++) {
-                        str += " OR track_id = " + songList[i];
-                    }
-                    pool.query(str, (err, resp3) => {
-                        if (err) {
-                            throw err;
-                        }
+    let responseAddition;
+    try {
+        responseAddition = await pool.query(query1);
+    } catch (err) {
+        console.log("Err: " + err);
+        res.status(409).send("No duplicate songs...");
+        return;
+    }
 
-                        if (resp3.rows.length === songList.length) {
-                            // if the playlist exists and is empty
-                            pool.query('DELETE FROM playlists WHERE playlist_id = $1', [cleanPlaylistId]); // delete empty playlist entry
+    let responseRts;
+    try {
+        responseRts = await pool.query(query2);
+    } catch (err) {
+        console.log("Err: " + err);
+        res.send("Couldnt get track times");
+        return;
+    }
 
-                            for (let i = 1; i < songList.length + 1; i++) {
-                                pool.query('INSERT INTO playlists (playlist_id, playlist_name, playlist_user, track_id) VALUES ($1, $2, $3, $4)', [cleanPlaylistId, playlistName, userId, songList[i - 1]]);
-                            }
-                            res.send(cleanPlaylistId);
-                        } else {
-                            res.status(404).send("One of those track_ids doesn't exist.")
-                        }
-                    })
+    let s = 0;
+    for (let i = 0; i < responseRts.rowCount; i++) {
+        s += minutesToSeconds(responseRts.rows[i].track_duration);
+    }
 
-                } else {
-                    // if the playlist exists and has things in it; delete and replace
-                    pool.query('DELETE FROM playlists WHERE playlist_id = $1', [cleanPlaylistId]); // delete empty playlist entry
-
-                    for (let i = 1; i < songList.length + 1; i++) {
-                        pool.query('INSERT INTO playlists (playlist_id, playlist_name, playlist_user, track_id) VALUES ($1, $2, $3, $4)', [cleanPlaylistId, playlistName, userId, songList[i - 1]]);
-                    }
-
-                    res.send(cleanPlaylistId);
-                }
-            });
-        }
-    });
+    let query = "UPDATE playlists SET running_time = $1 WHERE playlist_id = $2"
+    let response = await pool.query(query, [s, cleanPlaylistId]);
+    res.send(cleanPlaylistId);
 });
 
 // Requirement 8: Get track_ids for all songs in playlist
 app.get('/api/playlists/:playlist_id', (req, res) => {
     const cleanPlaylistId = sanitizeHtml(req.params.playlist_id);
-    pool.query('SELECT track_id FROM playlists WHERE playlist_id = $1', [cleanPlaylistId], (err, resp) => {
+    pool.query('SELECT track_id FROM playlist_tracks WHERE playlist_id = $1', [cleanPlaylistId], (err, resp) => {
         if (err) {
             throw err;
         }
 
         if (resp.rows.length < 1) {
-            res.status(404).send('Playlist does not exist');
+            res.status(404).send('Playlist has no songs');
             return;
         } else {
             let justValues = new Array();
@@ -389,65 +386,23 @@ app.get('/api/playlists/:playlist_id', (req, res) => {
 // Requirement 9: Delete playlist
 app.delete('/api/playlists/:playlist_id', (req, res) => {
     const cleanPlaylistId = sanitizeHtml(req.params.playlist_id);
-    pool.query('SELECT playlist_id FROM playlists WHERE playlist_id = $1', [cleanPlaylistId], (err, resp) => {
-        if (resp.rows.length > 0) {
-            pool.query('DELETE FROM playlists WHERE playlist_id = $1', [cleanPlaylistId], (err, resp) => {
-                res.send(cleanPlaylistId);
-            });
-        } else {
-            res.status(404).send("No playlist matching that name was found.")
-            return;
-        }
-    });
+
+    let query = "DELETE FROM playlists WHERE playlist_id = $1"
+    let response;
+    try {
+        response = pool.query(query, [cleanPlaylistId]);
+    } catch (err) {
+        console.log("err: " + err);
+        res.status(404).send("Playlist not found");
+        return ;
+    }
+    console.log(response.rows);
+    res.send(cleanPlaylistId);
 });
 
 // Requirement 10: Get playlist information
 app.get('/api/playlists/', (req, res) => {
-    /* Returns:
-    *    __________________________________________
-    *   | playlist_id | playlist_name | song_count |
-    *   |_____________|_______________|____________|
-    * 
-    *   it is ordered by ascending playlist_id. Iff playlist_id's are assigned sequentially starting from 1, then resp.rows[i] necessarily correlates to the zero-counted i+1-th playlist
-    *   i.e. if you're looking for playlist 1253, resp.rows[1252] will give you that 
-    */
-    pool.query('SELECT playlist_id, playlist_name, COUNT(CASE WHEN track_id != 0 THEN 1 ELSE NULL END) AS song_count FROM playlists GROUP BY (playlist_id, playlist_name) ORDER BY playlist_id ASC', (err, resp) => {
-        if (err) {
-            throw err;
-        }
-        const songCountsByPlaylistId = resp.rows;
-
-        // now calculate running time
-        /* Returns:
-        *    _________________________________________________________
-        *   | playlist_id | playlist_name | track_id | track_duration |
-        *   |_____________|_______________|__________|________________|
-        */
-
-        pool.query('SELECT playlist_id, playlist_name, playlists.track_id, tracks.track_duration FROM playlists NATURAL JOIN tracks GROUP BY (playlist_id, playlist_name, playlists.track_id, tracks.track_duration) ORDER BY playlist_id ASC', (err, response) => {
-            if (err) {
-                throw err;
-            }
-
-            const tracksByPlaylistId = response.rows;
-            let runningTimesPerPlaylist = new Array(songCountsByPlaylistId.length).fill(0);
-
-            let songIdx = 0;
-            for (let playlistIdx = 0; playlistIdx < songCountsByPlaylistId.length + 1; playlistIdx++) {
-                while (songIdx < tracksByPlaylistId.length && playlistIdx === tracksByPlaylistId[songIdx].playlist_id) {
-                    runningTimesPerPlaylist[playlistIdx - 1] += minutesToSeconds(tracksByPlaylistId[songIdx].track_duration);
-                    songIdx++;
-                }
-            }
-
-            // join the total running times to their respective playlists in songCountsByPlaylistId
-            for (let i = 0; i < songCountsByPlaylistId.length; i++) {
-                songCountsByPlaylistId[i].running_time = runningTimesPerPlaylist[i]; // notice the map of i between songCountsByPlaylistId and runningTimesPerPlaylist 
-            }
-
-            res.send(songCountsByPlaylistId);
-        });
-    });
+    // todo
 });
 
 // takes input of mm:ss in text form, outputs equivalent time in seconds

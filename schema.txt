@@ -110,7 +110,11 @@ last_modified_datetime (time and date)
 description_text (can be null)
 is_private (DEFAULT True)
 average_rating
-user_id) FK references User(user_id)
+
+PlaylistUsers(
+playlist_id PK
+username PK
+)
 
 Review(
 review_id
