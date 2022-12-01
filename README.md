@@ -1,5 +1,5 @@
 # Full-Stack Music Streaming Application
-### By [Ahmad El-Zein](mailto:aelzein2@uwo.ca), [Saif Ahmad](mailto:sahma244@uwo.ca), [Brody Smith](mailto:sahma244@uwo.ca) on December 2, 2022  
+### By [Ahmad El-Zein](mailto:aelzein2@uwo.ca), [Saif Ahmad](mailto:sahma244@uwo.ca), [Brody Smith](mailto:bsmit272@uwo.ca) on December 2, 2022  
 
 # Technologies Used
 Todo  
