@@ -1,5 +1,7 @@
 'use strict'
 
+const h = require('./helpers');
+
 /* Requirement 6: Create new playlist */
 exports.create = async function (req, res) {
     // song list is in request body
@@ -62,7 +64,7 @@ exports.add_songs = async function (req, res) {
 
     let s = 0;
     for (let i = 0; i < responseRts.rowCount; i++) {
-        s += minutesToSeconds(responseRts.rows[i].track_duration);
+        s += h.minutesToSeconds(responseRts.rows[i].track_duration);
     }
 
     let query = "UPDATE playlists SET running_time = $1 WHERE playlist_id = $2"

@@ -63,15 +63,6 @@ app.delete('/api/playlists/:playlist_id', playlists.delete_playlist);
 /* not implemented right now */
 app.get('/api/playlists/', playlists.get_playlist_information);
 
-// Utility
-
-/* takes input of mm:ss in text form, outputs equivalent time in seconds */
-function minutesToSeconds(inputText) {
-    const minutes = parseInt(inputText.split(':')[0]);
-    const seconds = parseInt(inputText.split(':')[1]);
-    return minutes * 60 + seconds;
-}
-
 // Miscellaneous 
 
 /* Have the app listen on the specified port environment variable or 4000 if env var is undefined */
