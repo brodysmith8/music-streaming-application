@@ -40,15 +40,23 @@ app.use(cors({ origin: '*' }));
 
 // General
 
-app.get('/api', general.api);
+app.get('/api', (req, res) => {
+    res.send('Please add /tracks, /albums, /artist, or /genre followed by a resource reference after your request.');
+});
 
 // User
 
+// tested
 app.post("/user/create", async (req, res) => {
     let hash;
     const email = req.body.email_address;
     const username = req.body.username;
     const password = req.body.password;
+
+    if (email === "" || username === "" || password === "") {
+        res.status(400).send("Ensure all fields are filled.");
+        return;
+    }
 
     try {
         hash = await argon2.hash(password);
@@ -62,62 +70,86 @@ app.post("/user/create", async (req, res) => {
     } catch (err) {
         console.log("Err: " + err);
         if (err.message.search("duplicate") != -1) {
-            res.status(409).send("Username taken")
+            res.status(409).send("Username taken");
+            return;
         }
+        res.status(500).send("Error");
+        return;
     }
 });
 
+// tested
 app.post("/user/login", async (req, res) => {
     const username = req.body.username;
-    const email = req.body.email_address;
     const password = req.body.password;
+
+    if (username === "" || password === "") {
+        res.status(400).send("Ensure all fields are filled.");
+        return;
+    }
+
     try {
-        const query = "SELECT password FROM \"users\" WHERE (username = $1 OR email_address = $2)"
-        const result = await pool.query(query, [username, email]);
+        const query = "SELECT password FROM \"users\" WHERE (username = $1)"
+        const result = await pool.query(query, [username]);
         if (result.rowCount == 1) {
             if (await argon2.verify(result.rows[0].password, password)) {
                 res.send("success");
+                return;
             } else {
-                res.send("password incorrect");
+                res.status(401).send("password incorrect");
+                return;
             }
         } else {
-            res.status(404).send("Password not found");
+            res.status(404).send("Account not found");
+            return;
         }
     } catch (err) {
         console.log("Err: " + err);
+        res.status(500).send("Error");
+        return;
     }
 });
 
+// tested
 app.post("/user/change_password", async (req, res) => {
-    const username = req.body.username;
     const password = req.body.old_password;
     const new_p = req.body.new_password;
     const email = req.body.email_address;
 
+    if (password === "" || new_p === "" || email === "") {
+        res.status(400).send("Ensure all fields are filled.");
+        return;
+    }
+
     try {
-        const old_p = await pool.query("SELECT password FROM \"users\" WHERE (username = $1 OR email_address = $2)", [username, email])
+        const old_p = await pool.query("SELECT password FROM \"users\" WHERE email_address = $1", [email])
         if (old_p.rowCount == 1) {
-            console.log("abc: " + old_p.rows[0].password);
-            if (argon2.verify(old_p.rows[0].password, password)) {
-                const query = "UPDATE \"users\" SET password = $1 WHERE (username = $2 OR email_address = $3)";
+            if (await argon2.verify(old_p.rows[0].password, password)) {
+                const query = "UPDATE \"users\" SET password = $1 WHERE email_address = $2";
                 const hash = await argon2.hash(new_p);
-                const response = await pool.query(query, [hash, username, email]);
+                const response = await pool.query(query, [hash, email]);
                 if (response.rowCount == 1) {
                     res.send("successful");
+                    return;
                 }
             } else {
-                res.send("old password incorrect");
+                res.status(401).send("old password incorrect");
+                return;
             }
         } else {
-            res.send("user not found");
+            res.status(404).send("user not found");
+            return;
         }
     } catch (err) {
         console.log("err: " + err);
+        res.status(500).send("error");
+        return;
     }
 });
 
 // Genres
 
+// tested
 // Requirement 1: Get all genre names, IDs, parent IDs
 app.get('/api/genres', (req, res) => {
     pool.query('SELECT * FROM genres', (err, resp) => {
@@ -141,6 +173,7 @@ app.get('/api/genres', (req, res) => {
 
 // Artists
 
+// tested
 /* Requirement 2: artist_id */
 app.get('/api/artists/:artist_id', (req, res) => {
     const cleanArtistId = sanitizeHtml(req.params.artist_id);
@@ -170,9 +203,15 @@ app.get('/api/artists/:artist_id', (req, res) => {
     });
 });
 
+// tested
 /* Requirement 5: Get all artist_ids for artist name */
 app.get('/api/artists', (req, res) => {
-    const cleanQuery = sanitizeHtml(req.query.query);
+    const cleanQuery = sanitizeHtml(req.query.search);
+
+    if (cleanQuery == "") {
+       res.status(400).send("Enter a search query");
+       return; 
+    }
 
     let sqlStr = 'SELECT DISTINCT artist_id FROM artists WHERE artist_name LIKE \'%' + cleanQuery + '%\'';
     pool.query(sqlStr, (err, resp) => {
@@ -184,12 +223,14 @@ app.get('/api/artists', (req, res) => {
             return;
         } else {
             res.send(resp.rows);
+            return;
         }
     });
 });
 
 // Tracks
 
+// tested
 /* Requirement 3: track_id */
 app.get('/api/tracks/:track_id', (req, res) => {
     const cleanTrackId = sanitizeHtml(req.params.track_id);
@@ -207,10 +248,18 @@ app.get('/api/tracks/:track_id', (req, res) => {
     });
 });
 
+// tested
 /* Requirement 4: return n = 5 track_ids for a query of track title */
-app.get('/api/tracks/', (req, res) => {
-    const cleanQuery = sanitizeHtml(req.query.query);
+app.get('/api/tracks', (req, res) => {
+    const cleanQuery = sanitizeHtml(req.query.search);
     const cleanType = sanitizeHtml(req.query.type);
+
+    if (cleanQuery === "") {
+        res.status(400).send("Enter a search");
+        return;
+    }
+
+    // tested
     if (cleanType === "tracks") {
         let sqlStr = 'SELECT DISTINCT track_id FROM tracks WHERE UPPER(track_title) LIKE UPPER(\'%' + cleanQuery + '%\')';
         pool.query(sqlStr, (err, resp) => {
@@ -227,7 +276,9 @@ app.get('/api/tracks/', (req, res) => {
                 res.send(resp.rows.slice(0, 5));
             }
         });
-    } else if (cleanType === "albums") {
+    } 
+    // tested
+    else if (cleanType === "albums") { 
         //album_title LIKE \'%' + req.query.query + '%\' OR 
         let sqlStr = 'SELECT DISTINCT album_id FROM albums WHERE UPPER(album_title) LIKE UPPER(\'%' + cleanQuery + '%\')';
         pool.query(sqlStr, (err, resp) => {
@@ -247,7 +298,7 @@ app.get('/api/tracks/', (req, res) => {
                     } else if (resp2.rows.length < 5) {
                         res.send(resp2.rows);
                     } else {
-                        res.send(resp2.rows.slice(0, 5));
+                        res.send(resp2.rows.slice(-5));
                     }
                 });
             } else {
@@ -255,8 +306,11 @@ app.get('/api/tracks/', (req, res) => {
                 return;
             }
         });
-    } else if (cleanType === "artists") {
-        let sqlStr = 'SELECT DISTINCT artist_id FROM artists WHERE UPPER(artist_handle) LIKE UPPER(\'%' + cleanQuery + '%\')';
+    } 
+    
+    // tested
+    else if (cleanType === "artists") {
+        let sqlStr = 'SELECT DISTINCT artist_id FROM artists WHERE UPPER(artist_handle) LIKE UPPER(\'%' + cleanQuery.replace(/\s/g,"_") + '%\')';
         pool.query(sqlStr, (err, resp) => {
             if (err) {
                 throw err;
@@ -279,7 +333,7 @@ app.get('/api/tracks/', (req, res) => {
                     } else if (resp2.rows.length < 5) {
                         res.send(resp2.rows);
                     } else {
-                        res.send(resp2.rows.slice(0, 5));
+                        res.send(resp2.rows.slice(-5));
                     }
                 });
             } else {
@@ -287,11 +341,15 @@ app.get('/api/tracks/', (req, res) => {
                 return;
             }
         });
+    } else {
+        res.status(404).send("type not found");
+        return;
     }
 });
 
 // Playlists
 
+// tested
 /* Requirement 6: Create new playlist */
 app.post('/api/playlists/create', async (req, res) => {
     // song list is in request body
@@ -300,26 +358,57 @@ app.post('/api/playlists/create', async (req, res) => {
     const description = sanitizeHtml(req.body.description); // needs to be "" in the request if not supplied
     let isPrivate = sanitizeHtml(req.body.isPrivate); // needs to be supplied in request 
 
-    let query = "INSERT INTO playlists (playlist_name, running_time, last_modified_datetime, description_text, is_private, average_rating) VALUES ($1, 0, $2, $3, $4, 0.0)";
-    let response = await pool.query(query, [playlistName, new Date(), description, isPrivate]);
-
-    query = "INSERT INTO playlist_users (username) VALUES ($1)";
-    response = await pool.query(query, [username]);
-    if (!response.rows[0]) {
-        res.send(playlistName);
+    if (playlistName === "" || username === "" || description === "" || isPrivate === "") {
+        res.status(400).send("Ensure all fields are filled");
         return;
     }
 
-    res.status(409).send("Conflict happened");
+    // make sure user exists
+    let query = "SELECT * FROM users WHERE username = $1";
+    let response = await pool.query(query, [username]);
+    if (response.rowCount == 0) {
+        res.status(404).send("User not found");
+        return;
+    }
+
+    query = "INSERT INTO playlists (playlist_name, running_time, last_modified_datetime, description_text, is_private, average_rating) VALUES ($1, 0, $2, $3, $4, 0.0)";
+    response = await pool.query(query, [playlistName, new Date(), description, isPrivate]);
+
+    query = "SELECT MAX(playlist_id) FROM playlists WHERE playlist_name = $1";
+    response = await pool.query(query, [playlistName]);
+
+    let playlist_id = response.rows[0].max;
+
+    query = "INSERT INTO playlist_users (playlist_id, username) VALUES ($1, $2)";
+    response = await pool.query(query, [playlist_id, username]);
+    
+    if (!response.err) {
+        res.send(`${playlist_id}`);
+        return;
+    }
+    console.log(response.err);
+    res.status(500).send("Error");
 });
 
 /* Requirement 7: Add songs to playlist
    make sure playlist exists before calling this... */
+// tested
 app.put('/api/playlists/:playlist_id', async (req, res) => {
     const songList = sanitizeHtml(req.body.track_list).split(',');
-    const playlistName = sanitizeHtml(req.body.playlist_name);
-    const username = sanitizeHtml(req.body.username);
     const cleanPlaylistId = sanitizeHtml(req.params.playlist_id);
+
+    if (songList[0] === "") {
+        res.status(400).send("Add one or more songs");
+        return;
+    }
+
+    // make sure playlist exists
+    let query = "SELECT * FROM playlists WHERE playlist_id = $1";
+    let response = await pool.query(query, [cleanPlaylistId]);
+    if (response.rowCount == 0) {
+        res.status(404).send("Playlist not found");
+        return;
+    }
 
     // DB assumption: user can only have distinct songs in a playlist; no repeats
     let query1 = "INSERT INTO playlist_tracks (playlist_id, track_id) VALUES ";
@@ -357,12 +446,13 @@ app.put('/api/playlists/:playlist_id', async (req, res) => {
         s += minutesToSeconds(responseRts.rows[i].track_duration);
     }
 
-    let query = "UPDATE playlists SET running_time = $1 WHERE playlist_id = $2"
-    let response = await pool.query(query, [s, cleanPlaylistId]);
+    query = "UPDATE playlists SET running_time = $1 WHERE playlist_id = $2"
+    response = await pool.query(query, [s, cleanPlaylistId]);
     res.send(cleanPlaylistId);
 });
 
 /* Requirement 8: Get track_ids for all songs in playlist */
+// tested
 app.get('/api/playlists/:playlist_id', (req, res) => {
     const cleanPlaylistId = sanitizeHtml(req.params.playlist_id);
     pool.query('SELECT track_id FROM playlist_tracks WHERE playlist_id = $1', [cleanPlaylistId], (err, resp) => {
@@ -371,7 +461,7 @@ app.get('/api/playlists/:playlist_id', (req, res) => {
         }
 
         if (resp.rows.length < 1) {
-            res.status(404).send('Playlist has no songs');
+            res.status(404).send('Playlist has no songs or does not exist');
             return;
         } else {
             let justValues = new Array();
@@ -385,6 +475,7 @@ app.get('/api/playlists/:playlist_id', (req, res) => {
 });
 
 /* Requirement 9: Delete playlist */
+// tested
 app.delete('/api/playlists/:playlist_id', (req, res) => {
     const cleanPlaylistId = sanitizeHtml(req.params.playlist_id);
 
@@ -397,7 +488,7 @@ app.delete('/api/playlists/:playlist_id', (req, res) => {
         res.status(404).send("Playlist not found");
         return ;
     }
-    console.log(response.rows);
+    
     res.send(cleanPlaylistId);
 });
 
