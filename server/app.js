@@ -506,10 +506,8 @@ function minutesToSeconds(inputText) {
     return minutes * 60 + seconds;
 }
 
-// Miscellaneous 
-
-/* Have the app listen on the specified port environment variable or 4000 if env var is undefined */
-const port = process.env.PORT || 3000;
+// Have the app listen on the specified port environment variable or 3000 if env var is undefined
+const port = process.env.PORT || 4000;
 app.listen(port, () => {
     console.log(`Listening on port ${port}...`);
 });
