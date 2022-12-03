@@ -322,7 +322,9 @@ app.get('/api/tracks', (req, res) => {
             }
         });
     }
+
     // tested
+    // updated 
     else if (cleanType === "artists") {
         let sqlStr = 'SELECT DISTINCT artist_id FROM artists WHERE UPPER(artist_handle) LIKE UPPER(\'%' + cleanQuery.replace(/\s/g,"_") + '%\')';
         pool.query(sqlStr, (err, resp) => {
@@ -331,28 +333,34 @@ app.get('/api/tracks', (req, res) => {
             }
 
             if (resp.rows.length > 0) {
-                let sqlStr2 = 'SELECT track_id FROM tracks WHERE (artist_id = ' + resp.rows[0].artist_id;
+                let sqlStr2 = `SELECT track_id, track_genres, track_title, artist_name, track_duration AS track_duration_seconds
+                FROM tracks 
+                WHERE (artist_id = ${resp.rows[0].artist_id}`;
+
                 for (let i = 1; i < resp.rows.length; i++) {
                     sqlStr2 += ' OR artist_id = ' + resp.rows[i].artist_id;
                 }
-                sqlStr2 += ')';
+                sqlStr2 += ') LIMIT 5;';
 
                 pool.query(sqlStr2, (err, resp2) => {
                     if (err) {
                         throw err;
                     }
+
                     if (resp2.rows.length == 0) {
                         res.status(404).send('No results found.')
                         return;
-                    } else if (resp2.rows.length < 5) {
-                        res.send(resp2.rows);
-                    } else {
-                        res.send(resp2.rows.slice(-5));
                     }
+                    let resObj = resp2.rows;
+                    console.log(resp2);
+
+                    for (let i = 0; i < resp2.rows.length; i++) {
+                        resObj[i].track_duration_seconds = minutesToSeconds(resObj[i].track_duration_seconds);
+                    }
+
+                    res.send(resObj);
+                    return;
                 });
-            } else {
-                res.status(404).send('No results found.')
-                return;
             }
         });
     } else {
