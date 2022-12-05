@@ -231,6 +231,7 @@ app.get('/api/artists', (req, res) => {
 // tested
 /* Requirement 3: track_id */
 app.get('/api/tracks/:track_id', (req, res) => {
+    console.log(req.params.track);
     const cleanTrackId = sanitizeHtml(req.params.track_id);
     pool.query('SELECT album_id, album_title, artist_id, artist_name, tags, track_date_created, track_date_recorded, track_duration, track_genres, track_number, track_title, track_id FROM tracks WHERE track_id = $1', [cleanTrackId], (err, resp) => {
         if (err) {
@@ -529,7 +530,7 @@ function minutesToSeconds(inputText) {
 }
 
 // Have the app listen on the specified port environment variable or 3000 if env var is undefined
-const port = process.env.PORT || 4000;
+const port = process.env.PORT || 3000;
 app.listen(port, () => {
     console.log(`Listening on port ${port}...`);
 });

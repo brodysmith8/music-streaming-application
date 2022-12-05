@@ -1,13 +1,13 @@
 import React from 'react'
-import { useState } from 'react'
-import { NavLink } from 'react-router-dom'
+import { useState, useEffect } from 'react'
 import { HiOutlineMenu } from 'react-icons/hi'
 import { RiCloseLine } from 'react-icons/ri'
 import { HiOutlineHome } from 'react-icons/hi'
 import { TbPlaylist } from 'react-icons/tb'
+import { RiPlayListAddLine } from 'react-icons/ri'
 
 
-const Sidebar = () => {
+const Sidebar = (props) => {
 
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -24,6 +24,10 @@ const Sidebar = () => {
                         <TbPlaylist className='w-6 h-6 mr-2'/>
                         <a href='/playlists'>Playlists</a>
                     </li>
+                    <li className='flex flex-row justify-start items-center my-8 text-lg font-regular text-white hover:text-red-500'>    
+                            <RiPlayListAddLine className='w-6 h-6 mr-2'/>
+                            <a href='/addplaylists' onClick={() => setMobileMenuOpen(false)}>Add Playlist</a>
+                        </li>
                 </ul>
             </nav>
 
@@ -33,8 +37,8 @@ const Sidebar = () => {
                 ): <HiOutlineMenu className='w-6 h-6 text-white mr-2' onClick={() => setMobileMenuOpen(true)}/>}
             </div>
 
-            <div className={`absolute top-0 h-screen w-1/2 bg-[#330404] backdrop-blur-sm p-6 md:hidden smooth-transition ${mobileMenuOpen ? 'left-0' : '-left-full'}`}>
-                <nav className='flex-col px-4 bg-[#330404]'>
+            <div className={`absolute top-0 h-screen w-1/2 bg-[#330404] backdrop-blur-sm p-6 md:hidden smooth-transition ease-in-out duration-300 ${mobileMenuOpen ? 'left-0' : '-left-full'}`}>
+                <nav className='flex-col px-4 bg-[#330404] '>
                     <ul >
                         <li className='flex flex-row justify-start items-center my-8 text-lg font-regular text-white hover:text-red-500'>
                             <HiOutlineHome className='w-6 h-6 mr-2'/>
@@ -43,6 +47,10 @@ const Sidebar = () => {
                         <li className='flex flex-row justify-start items-center my-8 text-lg font-regular text-white hover:text-red-500'>    
                             <TbPlaylist className='w-6 h-6 mr-2'/>
                             <a href='/playlists' onClick={() => setMobileMenuOpen(false)}>Playlists</a>
+                        </li>
+                        <li className='flex flex-row justify-start items-center my-8 text-lg font-regular text-white hover:text-red-500'>    
+                            <RiPlayListAddLine className='w-6 h-6 mr-2'/>
+                            <a href='/playlists' onClick={() => setMobileMenuOpen(false)}>Add Playlist</a>
                         </li>
                     </ul>
                 </nav>

@@ -2,21 +2,28 @@ import {Route, Routes} from 'react-router-dom';
 import "./index.css"
 import Login from './components/Login';
 import Playlists from './components/Playlists';
+import AddPlaylist from './components/AddPlaylist';
 import Sidebar from './components/Sidebar';
 import Discover from './components/Discover';
-
+import { useState } from 'react';
 
 function App() {
+  const [isRenderd, setIsRendered] = useState(false);
   return (
-    <div className='relative flex h-screen'>
-
-      <Routes>
-        <Route path="/" element={<Login />} />  
-        <Route path="/home" element={<><Sidebar /> <Discover /></>} />
-        <Route path="/playlists" element={<><Sidebar /> <Playlists /></>} />
-      </Routes>
+    
+    <div className='relative flex h-screen '>
+    <Sidebar />
+      <div className='w-full overflow-y-scroll scrollbar-hide'> 
+        <Routes>
+          <Route path="/" element={<Login />} />  
+          <Route path="/home" element={<><Discover /></>} />
+          <Route path="/playlists" element={<><Playlists /></>} />
+          <Route path="/addplaylists" element={<><AddPlaylist/></>} />
+        </Routes>
+      </div>
     </div>
   );
 }
 
 export default App;
+
