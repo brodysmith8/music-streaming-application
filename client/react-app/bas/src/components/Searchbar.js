@@ -10,50 +10,38 @@ const Searchbar = () => {
 
     const [input, setInput] = useState("s");
     const [data, setData] = useState([]);
-    const [tracks, setTracks] = useState([]);
 
 
-    useEffect(()=>{
-        console.log("test");
-        const fetchData = async () => {
+
+    const fetchData = async () => {
+
+        try {
             const res1 = await axios.get(`http://localhost:3000/api/tracks?search=${input}&type=tracks`)
             const res2 = await axios.get(`http://localhost:3000/api/tracks?search=${input}&type=artists`)
-
             const res = res1.data.concat(res2.data)
-            
+        
             const result = [...new Set(res.map(obj => JSON.stringify(obj)))]
             .map(str => JSON.parse(str));
 
             setData(result);
+            console.log(data);
+        } catch(err) {
+            alert("no songs")
         }
+
+
+    }
+
+    useEffect(()=>{
         fetchData()
-    },[input])
-
-
-
-
-
-const arrUnique = (arr) => {
-    let cleaned = [];
-    arr.forEach(function(itm) {
-        var unique = true;
-        cleaned.forEach(function(itm2) {
-            if (arr.isEqual(itm, itm2)) unique = false;
-        });
-        if (unique)  cleaned.push(itm);
-    });
-    return cleaned;
-}
-    console.log(data);
+    },[])
     
 
 
 
     const handleKeyDown = (e) => {
         if (e.key === 'Enter') {
-            // console.log(e.target.value);
-            // console.log(input);
-            // // searchTrack(e.target.value)
+            fetchData()
         }
     }
 
