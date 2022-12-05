@@ -6,10 +6,10 @@ const cors = require('cors');
 const sanitizeHtml = require('sanitize-html');
 const { Pool } = require('pg');
 const argon2 = require('argon2');
-// const { auth } = require('express-openid-connect');
+const { auth } = require('express-openid-connect');
 
 const app = express();
-module.exports = app; 
+module.exports = app;
 
 /* RDS database connection */
 const pool = new Pool({
@@ -22,16 +22,14 @@ const pool = new Pool({
 
 // Config
 
-/*
-const config = {
-    authRequired: false,
-    auth0Logout: true,
-    secret: '5dfe5959c2eaec4a37902820480ffb96beb201389c981e36b47eb35a69f7e583',
-    baseURL: 'http://localhost:3000',
-    clientID = 'bq7eKDwPxWc2bQtDrTkLOHH2bY1L59DH',
-    issuerBaseURL: 'https://se3316-bsmit272-aelzein2-sahma244-lab4.us.auth0.com'
-}
-*/
+// const config = {
+//     authRequired: false,
+//     auth0Logout: true,
+//     secret: 'K51DdEAOlqllTlRBT2u9PbWpxvTI_omXLh-h03vjaUMfWaWmzRH4-L03kjGAtmZ0',
+//     baseURL: 'http://localhost:3000',
+//     clientID = 'bq7eKDwPxWc2bQtDrTkLOHH2bY1L59DH',
+//     issuerBaseURL: 'https://se3316-bsmit272-aelzein2-sahma244-lab4.us.auth0.com'
+// }
 
 app.use(express.json());
 /* app.use(express.static('../client')); */
@@ -209,8 +207,8 @@ app.get('/api/artists', (req, res) => {
     const cleanQuery = sanitizeHtml(req.query.search);
 
     if (cleanQuery == "") {
-       res.status(400).send("Enter a search query");
-       return; 
+        res.status(400).send("Enter a search query");
+        return;
     }
 
     let sqlStr = 'SELECT DISTINCT artist_id FROM artists WHERE artist_name LIKE \'%' + cleanQuery + '%\'';
@@ -260,8 +258,13 @@ app.get('/api/tracks', (req, res) => {
     }
 
     // tested
+    // updated
     if (cleanType === "tracks") {
-        let sqlStr = 'SELECT DISTINCT track_id FROM tracks WHERE UPPER(track_title) LIKE UPPER(\'%' + cleanQuery + '%\')';
+        let sqlStr = `SELECT DISTINCT track_id, track_genres, track_title, artist_name, track_duration AS track_duration_seconds 
+                      FROM tracks 
+                      WHERE UPPER(track_title) 
+                      LIKE UPPER ('%${cleanQuery}%')
+                      LIMIT 5;`;
         pool.query(sqlStr, (err, resp) => {
             if (err) {
                 throw err;
@@ -270,15 +273,22 @@ app.get('/api/tracks', (req, res) => {
             if (resp.rows.length == 0) {
                 res.status(404).send('No results found.')
                 return;
-            } else if (resp.rows.length < 5) {
-                res.send(resp.rows);
-            } else {
-                res.send(resp.rows.slice(0, 5));
             }
+            let resObj = resp.rows;
+            console.log(resObj);
+
+            for (let i = 0; i < resp.rows.length; i++) {
+                resObj[i].track_duration_seconds = minutesToSeconds(resObj[i].track_duration_seconds);
+            }
+
+            res.send(resObj);
+            return;
         });
-    } 
+    }
+
     // tested
-    else if (cleanType === "albums") { 
+    // updated
+    else if (cleanType === "albums") {
         //album_title LIKE \'%' + req.query.query + '%\' OR 
         let sqlStr = 'SELECT DISTINCT album_id FROM albums WHERE UPPER(album_title) LIKE UPPER(\'%' + cleanQuery + '%\')';
         pool.query(sqlStr, (err, resp) => {
@@ -287,28 +297,34 @@ app.get('/api/tracks', (req, res) => {
             }
 
             if (resp.rows.length > 0) {
-                let sqlStr2 = 'SELECT DISTINCT track_id FROM tracks WHERE album_id = ' + resp.rows[0].album_id;
+                let sqlStr2 = `SELECT track_id, track_genres, track_title, artist_name, track_duration AS track_duration_seconds
+                FROM tracks 
+                WHERE album_id = ${resp.rows[0].album_id};`;
                 pool.query(sqlStr2, (err, resp2) => {
                     if (err) {
                         throw err;
                     }
+
                     if (resp2.rows.length == 0) {
                         res.status(404).send('No results found.')
                         return;
-                    } else if (resp2.rows.length < 5) {
-                        res.send(resp2.rows);
-                    } else {
-                        res.send(resp2.rows.slice(-5));
                     }
+                    let resObj = resp2.rows;
+                    console.log(resp2);
+
+                    for (let i = 0; i < resp2.rows.length; i++) {
+                        resObj[i].track_duration_seconds = minutesToSeconds(resObj[i].track_duration_seconds);
+                    }
+
+                    res.send(resObj);
+                    return;
                 });
-            } else {
-                res.status(404).send('No results found.')
-                return;
             }
         });
-    } 
-    
+    }
+
     // tested
+    // updated 
     else if (cleanType === "artists") {
         let sqlStr = 'SELECT DISTINCT artist_id FROM artists WHERE UPPER(artist_handle) LIKE UPPER(\'%' + cleanQuery.replace(/\s/g,"_") + '%\')';
         pool.query(sqlStr, (err, resp) => {
@@ -317,28 +333,34 @@ app.get('/api/tracks', (req, res) => {
             }
 
             if (resp.rows.length > 0) {
-                let sqlStr2 = 'SELECT track_id FROM tracks WHERE (artist_id = ' + resp.rows[0].artist_id;
+                let sqlStr2 = `SELECT track_id, track_genres, track_title, artist_name, track_duration AS track_duration_seconds
+                FROM tracks 
+                WHERE (artist_id = ${resp.rows[0].artist_id}`;
+
                 for (let i = 1; i < resp.rows.length; i++) {
                     sqlStr2 += ' OR artist_id = ' + resp.rows[i].artist_id;
                 }
-                sqlStr2 += ')';
+                sqlStr2 += ') LIMIT 5;';
 
                 pool.query(sqlStr2, (err, resp2) => {
                     if (err) {
                         throw err;
                     }
+
                     if (resp2.rows.length == 0) {
                         res.status(404).send('No results found.')
                         return;
-                    } else if (resp2.rows.length < 5) {
-                        res.send(resp2.rows);
-                    } else {
-                        res.send(resp2.rows.slice(-5));
                     }
+                    let resObj = resp2.rows;
+                    console.log(resp2);
+
+                    for (let i = 0; i < resp2.rows.length; i++) {
+                        resObj[i].track_duration_seconds = minutesToSeconds(resObj[i].track_duration_seconds);
+                    }
+
+                    res.send(resObj);
+                    return;
                 });
-            } else {
-                res.status(404).send('No results found.')
-                return;
             }
         });
     } else {
@@ -381,7 +403,7 @@ app.post('/api/playlists/create', async (req, res) => {
 
     query = "INSERT INTO playlist_users (playlist_id, username) VALUES ($1, $2)";
     response = await pool.query(query, [playlist_id, username]);
-    
+
     if (!response.err) {
         res.send(`${playlist_id}`);
         return;
@@ -486,9 +508,9 @@ app.delete('/api/playlists/:playlist_id', (req, res) => {
     } catch (err) {
         console.log("err: " + err);
         res.status(404).send("Playlist not found");
-        return ;
+        return;
     }
-    
+
     res.send(cleanPlaylistId);
 });
 
