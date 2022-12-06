@@ -6,10 +6,12 @@ import { useState } from 'react'
 const Trackcard = ({track}) => {
   
   const [toggeled, setToggled] = useState(false);
+  const ytQueryName = track.track_title.replace(/\s/g, "+");
+  const ytQueryArtist = track.artist_name.replace(/\s/g, "+");
 
   return (
-    <div className='my-4 p-4'>
-        <div className='flex flex-row w-full justify-between items-center p-4 hover:bg-[#330404] rounded-t-sm' onClick={() => setToggled(!toggeled)}>
+    <div className='my-4 p-4 hover:bg-[#330404] rounded-t-sm'>
+        <div className='flex flex-row w-full justify-between items-center py-4 ' onClick={() => setToggled(!toggeled)}>
           <div className='flex'>
             <div className='flex flex-col justify-center items-center w-16 h-16 rounded-sm bg-white'>
               <BsDisc className='w-10 h-10'/>
@@ -19,7 +21,7 @@ const Trackcard = ({track}) => {
               <h3 className='text-gray-300 object-bottom'>Song by {track.artist_name}</h3>
             </div>
           </div>
-          <div className='object-right'>
+          <div>
             <BsThreeDotsVertical className='fill-white'/>
           </div>
         </div>
@@ -31,7 +33,9 @@ const Trackcard = ({track}) => {
                 <h4>Track Length: {track.track_duration_seconds}s</h4>
               </div>
               <div>
-                <AiFillYoutube className='fill-[#330404] hover:fill-red-500' size={40} />
+                <a href={`https://www.youtube.com/results?search_query=${ytQueryName}+${ytQueryArtist}`} target="_blank">
+                  <AiFillYoutube className='fill-[#330404] hover:fill-red-500' size={40} />
+                </a>
               </div>
             </div>
           }
