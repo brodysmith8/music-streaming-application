@@ -15,6 +15,8 @@ const Searchbar = () => {
 
     const fetchData = async () => {
 
+
+
         try {
             const res1 = await axios.get(`http://localhost:3000/api/tracks?search=${input}&type=tracks`)
             const res2 = await axios.get(`http://localhost:3000/api/tracks?search=${input}&type=artists`)
@@ -26,8 +28,9 @@ const Searchbar = () => {
             setData(result);
             console.log(data);
         } catch(err) {
-            alert("no songs")
+            alert("No Songs!")
         }
+
 
 
     }
