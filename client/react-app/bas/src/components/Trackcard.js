@@ -10,8 +10,8 @@ const Trackcard = ({track}) => {
   const ytQueryArtist = track.artist_name.replace(/\s/g, "+");
 
   return (
-    <div className='my-4 p-4 hover:bg-[#330404] rounded-t-sm'>
-        <div className='flex flex-row w-full justify-between items-center py-4 ' onClick={() => setToggled(!toggeled)}>
+    <div className='p-4 hover:bg-[#330404] rounded-t-sm' >
+        <div className='flex flex-row w-full justify-between items-center py-4 '>
           <div className='flex'>
             <div className='flex flex-col justify-center items-center w-16 h-16 rounded-sm bg-white'>
               <BsDisc className='w-10 h-10'/>
@@ -22,7 +22,7 @@ const Trackcard = ({track}) => {
             </div>
           </div>
           <div>
-            <BsThreeDotsVertical className='fill-white'/>
+            <BsThreeDotsVertical className='fill-white hover:fill-red-500' size={25} onClick={() => setToggled(!toggeled)}/>
           </div>
         </div>
         <div>

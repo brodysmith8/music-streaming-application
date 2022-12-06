@@ -11,24 +11,51 @@ const Searchbar = () => {
     const [input, setInput] = useState("s");
     const [data, setData] = useState([]);
 
-
-
     const fetchData = async () => {
 
 
 
         try {
-            const res1 = await axios.get(`http://localhost:3000/api/tracks?search=${input}&type=tracks`)
-            const res2 = await axios.get(`http://localhost:3000/api/tracks?search=${input}&type=artists`)
-            const res = res1.data.concat(res2.data)
-        
+            
+            let res = null;
+            const res1 = await axios.get(`http://localhost:3000/api/tracks?search=${input}&type=onego`)
+            console.log(res1.data);
+            const trackQuery = res1.data.tracks_query
+            const albumQuery = res1.data.albums_query
+
+            // if (trackQuery === null && albumQuery === null) {
+            //     throw "test"
+            // }
+
+            if (albumQuery != null) {
+                res = trackQuery.concat(albumQuery)
+            } else {
+                res = trackQuery
+            }
+            //console.log(albumQuery);
+
+            //console.log(res1)
+            
+            // try {
+            //     res2 = await axios.get(`http://localhost:3000/api/tracks?search=${input}&type=artists`)    
+            // } catch(err) {
+            //     alert(err.response.data)
+            // }
+            
+            //console.log(res2)
+            // const res = res1.data.concat(res2.data)
+            //console.log(res)
+
             const result = [...new Set(res.map(obj => JSON.stringify(obj)))]
             .map(str => JSON.parse(str));
 
+            console.log(result)
+
             setData(result);
-            console.log(data);
+            console.log(result);
+            //console.log(data);
         } catch(err) {
-            alert("No Songs!")
+            alert("no songs")
         }
 
 
@@ -48,7 +75,7 @@ const Searchbar = () => {
         }
     }
 
-    console.log(input);
+    // console.log(input);
     return (
         <div className='flex flex-col w-full'>
             <form className="mb-3 w-full" onSubmit={handleSubmit}>
