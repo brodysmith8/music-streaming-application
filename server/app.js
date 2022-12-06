@@ -231,6 +231,7 @@ app.get('/api/artists', (req, res) => {
 // tested
 /* Requirement 3: track_id */
 app.get('/api/tracks/:track_id', (req, res) => {
+    console.log(req.params.track);
     const cleanTrackId = sanitizeHtml(req.params.track_id);
     pool.query('SELECT album_id, album_title, artist_id, artist_name, tags, track_date_created, track_date_recorded, track_duration, track_genres, track_number, track_title, track_id FROM tracks WHERE track_id = $1', [cleanTrackId], (err, resp) => {
         if (err) {
@@ -361,9 +362,85 @@ app.get('/api/tracks', (req, res) => {
                     res.send(resObj);
                     return;
                 });
+            } else {
+                res.status(404).send("no artists found")
+                return;
             }
         });
-    } else {
+    } else if (cleanType === "onego") {
+        let noSongs = false, noAlbums = false;
+        let rObj = new Object();
+        let sqlStr = `SELECT DISTINCT track_id, track_genres, track_title, artist_name, track_duration AS track_duration_seconds, album_title 
+                      FROM tracks 
+                      WHERE UPPER(track_title) 
+                      LIKE UPPER ('%${cleanQuery}%')
+                      LIMIT 5;`;
+        pool.query(sqlStr, (err, resp) => {
+            if (err) {
+                throw err;
+            }
+
+
+            if (resp.rows.length == 0) {
+                noSongs = true;
+            }
+            let resObj = resp.rows;
+
+            for (let i = 0; i < resp.rows.length; i++) {
+                resObj[i].track_duration_seconds = minutesToSeconds(
+                    resObj[i].track_duration_seconds
+                );
+            }
+
+            if (noSongs) {
+                rObj.tracks_query = null;
+            } else {
+                rObj.tracks_query = resObj;
+            }
+
+            //album_title LIKE \'%' + req.query.query + '%\' OR
+            let sqlStr2 =
+                "SELECT DISTINCT album_id FROM albums WHERE UPPER(album_title) LIKE UPPER('%" +
+                cleanQuery +
+                "%')";
+            pool.query(sqlStr2, (err, resp2) => {
+                if (err) {
+                    throw err;
+                }
+
+                if (resp2.rows.length > 0) {
+                    let sqlStr3 = `SELECT track_id, track_genres, track_title, artist_name, track_duration AS track_duration_seconds, album_title
+                    FROM tracks 
+                    WHERE album_id = ${resp2.rows[0].album_id};`;
+                    pool.query(sqlStr3, (err, resp3) => {
+                        if (err) {
+                            throw err;
+                        }
+
+                        if (resp3.rows.length == 0) {
+                            res.status(404).send("No songs or albums found with that name");
+                        } else if (noSongs) {
+                            res.status(404).send("No songs or albums found with that name");
+                        }
+                        resObj = resp3.rows;
+
+                        for (let i = 0; i < resp3.rows.length; i++) {
+                            resObj[i].track_duration_seconds = minutesToSeconds(
+                                resObj[i].track_duration_seconds
+                            );
+                        }
+                        
+                        rObj.albums_query = resObj;
+                        res.send(rObj);
+                        return;
+                    });
+                } else {
+                    rObj.albums_query = null;
+                    res.send(rObj);
+                }
+            });
+        });
+    }else {
         res.status(404).send("type not found");
         return;
     }
@@ -529,7 +606,7 @@ function minutesToSeconds(inputText) {
 }
 
 // Have the app listen on the specified port environment variable or 3000 if env var is undefined
-const port = process.env.PORT || 4000;
+const port = process.env.PORT || 3000;
 app.listen(port, () => {
     console.log(`Listening on port ${port}...`);
 });

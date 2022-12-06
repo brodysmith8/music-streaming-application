@@ -3,6 +3,8 @@ import Searchbar from './Searchbar'
 import { useState, useEffect } from 'react';
 
 const Discover = () => {
+
+
   return (
 
     <div className="flex flex-col w-5/6 m-8">
@@ -12,7 +14,7 @@ const Discover = () => {
           </div>
           <Searchbar />
         </div>
-        <div className='flex flex-wrap justify-left gap-8 text-white'>
+        <div className='flex flex-col flex-wrap justify-left gap-8 text-white'>
 
         </div>
 
