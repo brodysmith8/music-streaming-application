@@ -25,7 +25,7 @@ app.get('/api', (req, res) => {
 });
 
 // User
-app.use('/user', user);
+app.use('/api/user', user);
 
 // Genres
 app.use('/api/genres', genres);
