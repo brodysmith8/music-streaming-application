@@ -25,13 +25,9 @@ router.post('/create', async (req, res) => {
         return;
     }
 
-    query = "INSERT INTO playlists (playlist_name, running_time, last_modified_datetime, description_text, is_private, average_rating) VALUES ($1, 0, $2, $3, $4, 0.0)";
+    query = "INSERT INTO playlists (playlist_name, running_time, last_modified_datetime, description_text, is_private, average_rating) VALUES ($1, 0, $2, $3, $4, 0.0) RETURNING playlist_id";
     response = await pool.query(query, [playlistName, new Date(), description, isPrivate]);
-
-    query = "SELECT MAX(playlist_id) FROM playlists WHERE playlist_name = $1";
-    response = await pool.query(query, [playlistName]);
-
-    let playlist_id = response.rows[0].max;
+    let playlist_id = response.rows[0].playlist_id;
 
     query = "INSERT INTO playlist_users (playlist_id, username) VALUES ($1, $2)";
     response = await pool.query(query, [playlist_id, username]);
@@ -99,6 +95,7 @@ router.put('/:playlist_id', async (req, res) => {
     res.send(cleanPlaylistId);
 });
 
+// make this return all track info
 router.get('/:playlist_id', (req, res) => {
     const cleanPlaylistId = sanitizeHtml(req.params.playlist_id);
     pool.query('SELECT track_id FROM playlist_tracks WHERE playlist_id = $1', [cleanPlaylistId], (err, resp) => {
@@ -120,13 +117,13 @@ router.get('/:playlist_id', (req, res) => {
     });
 });
 
-router.delete('/:playlist_id', (req, res) => {
+router.delete('/:playlist_id', async (req, res) => {
     const cleanPlaylistId = sanitizeHtml(req.params.playlist_id);
 
     let query = "DELETE FROM playlists WHERE playlist_id = $1"
     let response;
     try {
-        response = pool.query(query, [cleanPlaylistId]);
+        response = await pool.query(query, [cleanPlaylistId]);
     } catch (err) {
         res.status(404).send("Playlist not found");
         return;
@@ -135,8 +132,18 @@ router.delete('/:playlist_id', (req, res) => {
     res.send(cleanPlaylistId);
 });
 
-router.get('/', (req, res) => {
-    // todo
+router.get('/', async (req, res) => {
+    const query = `SELECT *
+    FROM playlists
+    WHERE is_private = false
+    LIMIT 10;`;
+    const response = await pool.query(query);
+    if (response.rows.length === 0) {
+        res.status(404).send("No public playlists in the DB");
+        return;
+    }
+    res.send(response.rows);
+    return;
 });
 
 module.exports = router;
