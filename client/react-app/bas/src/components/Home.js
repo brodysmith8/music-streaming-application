@@ -1,6 +1,22 @@
 import PlaylistCard from "./PlaylistCard"
+import { useState, useEffect } from "react"
+import axios from "axios";
+
 
 const Home = () => {
+
+  const [data, setData] = useState([]);
+
+  const fetchData = async () => {
+
+    const res = await axios.get("http://localhost:3000/api/playlists/")
+    setData(res.data)
+    console.log(data);
+
+  }
+
+  
+
   return (
     <div className="flex flex-col w-5/6 m-8">
         <div className="flex flex-col">
