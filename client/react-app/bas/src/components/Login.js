@@ -29,7 +29,7 @@ const Login = () => {
 
     let navigate = useNavigate(); 
     const routeChange = () =>{ 
-        let path = `/home`; 
+        let path = `/discover`; 
         navigate(path);
     }
 
