@@ -1,5 +1,6 @@
 "use strict";
 
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 
@@ -12,7 +13,6 @@ const user =  require('./routes/user');
 const privacyPolicy = require('./routes/privacyPolicy'); // import the privacy policy route
 const dmca = require('./routes/dmca');  // import the dmca route
 const aup = require('./routes/aup'); // import the aup route
-
 
 const app = express();
 module.exports = app;
