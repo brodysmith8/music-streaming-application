@@ -1,5 +1,5 @@
 import React from 'react'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { HiOutlineMenu } from 'react-icons/hi'
 import { RiCloseLine } from 'react-icons/ri'
 import { BiSearchAlt } from 'react-icons/bi'
@@ -7,7 +7,7 @@ import { FiHome } from 'react-icons/fi'
 import { RiPlayListAddLine } from 'react-icons/ri'
 
 
-const Sidebar = (props) => {
+const Sidebar = () => {
 
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 

@@ -1,6 +1,3 @@
-import {Route, Routes} from 'react-router-dom';
-import Discover from './Discover';
-import Sidebar from './Sidebar';
 
 const Home = () => {
   return (

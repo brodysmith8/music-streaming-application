@@ -1,7 +1,6 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { RiGoogleFill } from 'react-icons/ri';
 import jwtDecode from 'jwt-decode';
 
 
