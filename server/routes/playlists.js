@@ -1,9 +1,12 @@
 const express = require("express");
 const router = express.Router();
+const private =  require('./private/playlists');
 
 const sanitizeHtml = require("sanitize-html");
 const pool = require("../pool.js");
 const { minutesToSeconds } = require("./helpers");
+
+router.use('/private', private);
 
 router.post("/create", async (req, res) => {
     // song list is in request body
@@ -141,6 +144,8 @@ router.get("/:playlist_id", async (req, res) => {
     }
 });
 
+// add JWT verification here so that a user who isn't the authorized user can't delete playlist
+// probs move to private tbh........
 router.delete("/:playlist_id", async (req, res) => {
     const cleanPlaylistId = sanitizeHtml(req.params.playlist_id);
 
