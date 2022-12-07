@@ -9,7 +9,16 @@ const Playlists = () => {
             <div className='w-full flex flex-col justify-between items-left'>
                 <h2 className='font-semibold text-white text-5xl text-left'>Playlist</h2>
             </div>
-            <div className='flex flex-wrap justify-center gap-8 text-white'>
+            <div className='flex flex-col justify-center gap-8 text-white'>
+            <h3 className='text-8xl'>Hello</h3>
+            <h3 className='text-8xl'>Hello</h3><h3 className='text-8xl'>Hello</h3>
+            <h3 className='text-8xl'>Hello</h3><h3 className='text-8xl'>Hello</h3>
+            <h3 className='text-8xl'>Hello</h3><h3 className='text-8xl'>Hello</h3>
+            <h3 className='text-8xl'>Hello</h3><h3 className='text-8xl'>Hello</h3>
+            <h3 className='text-8xl'>Hello</h3><h3 className='text-8xl'>Hello</h3>
+            <h3 className='text-8xl'>Hello</h3><h3 className='text-8xl'>Hello</h3>
+            <h3 className='text-8xl'>Hello</h3><h3 className='text-8xl'>Hello</h3>
+            <h3 className='text-8xl'>Hello</h3><h3 className='text-8xl'>Hello</h3>
             </div>
         </div>
     </div>

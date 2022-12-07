@@ -7,6 +7,8 @@ import jwtDecode from 'jwt-decode';
 
 const Login = () => {
 
+
+
     function handleCallbackResponse(response) {
         
         var userObj = jwtDecode(response.credential)
@@ -30,6 +32,8 @@ const Login = () => {
         let path = `/home`; 
         navigate(path);
     }
+
+    
 
   return (
     <div className='loginBG flex h-screen'>
