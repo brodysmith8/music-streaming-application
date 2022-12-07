@@ -13,14 +13,14 @@ const PlaylistCard = () => {
 
     return (
         <div className='flex flex-col'>
-            <div className='flex flex-row w-full justify-between p-4 hover:bg-[#330404]' style={{backgroundColor: toggeled ? '#330404':''}} onClick={() => setToggled(!toggeled)}>
+            <div className='flex flex-wrap flex-row overflow-auto w-full justify-between p-4 hover:bg-[#330404]' style={{backgroundColor: toggeled ? '#330404':''}} onClick={() => setToggled(!toggeled)}>
                 <div className='flex justify-between'>
                     <div className='flex flex-row justify-center items-center'>
                         <div className='flex flex-col justify-center items-center w-16 h-16 rounded-sm bg-white'>
                             <MdOutlinePlaylistPlay className='w-10 h-10' size={35} />
                         </div>
                     </div>
-                    <div className='flex flex-col items-left ml-4'>
+                    <div className='flex  flex-col items-left ml-4'>
                         <h1 className='text-white text-3xl'>Track Name</h1>
                         <div className='flex flex-row'>
                             <div className='flex flex-row gap-1 mr-4'>
