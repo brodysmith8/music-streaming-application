@@ -19,7 +19,6 @@ router.post("/create", async (req, res) => {
         hash = await argon2.hash(password);
         const query = "INSERT INTO \"users\" (username, password, email_address) VALUES ($1, $2, $3)";
         const result = await pool.query(query, [username, hash, email]);
-        console.log(result);
         if (result.rowCount == 1) {
             res.send(username);
         } else {
