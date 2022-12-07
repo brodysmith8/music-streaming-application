@@ -1,7 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import {FiSearch} from 'react-icons/fi'
 import axios from "axios"
-import stringSimilarity from 'string-similarity'
 import Trackcard from './Trackcard'
 
 const Searchbar = () => {
