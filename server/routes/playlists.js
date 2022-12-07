@@ -18,10 +18,9 @@ router.post("/create", async (req, res) => {
     if (
         playlistName === "" ||
         username === "" ||
-        description === "" ||
         isPrivate === ""
     ) {
-        res.status(400).send("Ensure all fields are filled");
+        res.status(400).send("Ensure playlist_name, username, and is_private fields are filled");
         return;
     }
 
@@ -34,13 +33,8 @@ router.post("/create", async (req, res) => {
     }
 
     query =
-        "INSERT INTO playlists (playlist_name, running_time, last_modified_datetime, description_text, is_private, average_rating) VALUES ($1, 0, $2, $3, $4, 0.0) RETURNING playlist_id";
-    response = await pool.query(query, [
-        playlistName,
-        new Date(),
-        description,
-        isPrivate,
-    ]);
+        `INSERT INTO playlists (playlist_name, running_time, last_modified_datetime, description_text, is_private, average_rating) VALUES (\'${playlistName}\', ${0}, \'${new Date(new Date().toString().split('GMT')[0]+' UTC').toISOString()}\', \'${description}\', ${isPrivate}, ${0}) RETURNING playlist_id`;
+    response = await pool.query(query);
     let playlist_id = response.rows[0].playlist_id;
 
     query =
@@ -52,62 +46,6 @@ router.post("/create", async (req, res) => {
         return;
     }
     res.status(500).send("Error");
-});
-
-router.put("/:playlist_id", async (req, res) => {
-    const songList = sanitizeHtml(req.body.track_list).split(",");
-    const cleanPlaylistId = sanitizeHtml(req.params.playlist_id);
-
-    if (songList[0] === "") {
-        res.status(400).send("Add one or more songs");
-        return;
-    }
-
-    // make sure playlist exists
-    let query = "SELECT * FROM playlists WHERE playlist_id = $1";
-    let response = await pool.query(query, [cleanPlaylistId]);
-    if (response.rowCount == 0) {
-        res.status(404).send("Playlist not found");
-        return;
-    }
-
-    // DB assumption: user can only have distinct songs in a playlist; no repeats
-    let query1 = "INSERT INTO playlist_tracks (playlist_id, track_id) VALUES ";
-    let query2 = "SELECT track_duration FROM tracks WHERE track_id IN (";
-    for (let i = 0; i < songList.length; i++) {
-        if (i != 0) {
-            query1 += ",";
-            query2 += ",";
-        }
-        query1 += `(${cleanPlaylistId}, ${songList[i]})`;
-        query2 += `${songList[i]}`;
-    }
-    query2 += ")";
-
-    let responseAddition;
-    try {
-        responseAddition = await pool.query(query1);
-    } catch (err) {
-        res.status(409).send("No duplicate songs...");
-        return;
-    }
-
-    let responseRts;
-    try {
-        responseRts = await pool.query(query2);
-    } catch (err) {
-        res.send("Couldnt get track times");
-        return;
-    }
-
-    let s = 0;
-    for (let i = 0; i < responseRts.rowCount; i++) {
-        s += minutesToSeconds(responseRts.rows[i].track_duration);
-    }
-
-    query = "UPDATE playlists SET running_time = $1 WHERE playlist_id = $2";
-    response = await pool.query(query, [s, cleanPlaylistId]);
-    res.send(cleanPlaylistId);
 });
 
 router.get("/:playlist_id", async (req, res) => {
