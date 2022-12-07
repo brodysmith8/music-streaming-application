@@ -1,7 +1,7 @@
 import {Route, Routes} from 'react-router-dom';
 import "./index.css"
 import Login from './components/Login';
-import Playlists from './components/Playlists';
+import Home from './components/Home';
 import AddPlaylist from './components/AddPlaylist';
 import Sidebar from './components/Sidebar';
 import Discover from './components/Discover';
@@ -16,8 +16,8 @@ function App() {
       <div className='w-full overflow-y-scroll scrollbar-hide'> 
         <Routes>
           <Route path="/" element={<Login />} />  
-          <Route path="/home" element={<><Discover /></>} />
-          <Route path="/playlists" element={<><Playlists /></>} />
+          <Route path="/home" element={<><Home /></>} />
+          <Route path="/discover" element={<><Discover /></>} />
           <Route path="/addplaylists" element={<><AddPlaylist/></>} />
         </Routes>
       </div>

@@ -10,8 +10,8 @@ const Trackcard = ({track}) => {
   const ytQueryArtist = track.artist_name.replace(/\s/g, "+");
 
   return (
-    <div className='p-4 hover:bg-[#330404] rounded-t-sm' >
-        <div className='flex flex-row w-full justify-between items-center py-4 '>
+    <div className='my-4 hover:bg-[#330404] p-4 hover: rounded-t-sm' style={{backgroundColor: toggeled ? '#330404':''}} onClick={() => setToggled(!toggeled)} >
+        <div className='flex flex-row w-full justify-between items-center  '>
           <div className='flex'>
             <div className='flex flex-col justify-center items-center w-16 h-16 rounded-sm bg-white'>
               <BsDisc className='w-10 h-10'/>
@@ -22,12 +22,12 @@ const Trackcard = ({track}) => {
             </div>
           </div>
           <div>
-            <BsThreeDotsVertical className='fill-white hover:fill-red-500' size={25} onClick={() => setToggled(!toggeled)}/>
+            <BsThreeDotsVertical className='fill-white hover:fill-red-500' size={25} />
           </div>
         </div>
         <div>
           {toggeled &&
-            <div className='flex flex-row justify-between items-center w-ful p-4 bg-white'> 
+            <div className='flex flex-row justify-between items-center w-ful p-4 mt-2 bg-white'> 
               <div className='flex flex-col text-[#330404]'>
                 <h4>Track ID: {track.track_id}</h4>
                 <h4>Track Length: {track.track_duration_seconds}s</h4>
