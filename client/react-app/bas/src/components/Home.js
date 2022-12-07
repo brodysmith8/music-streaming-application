@@ -1,3 +1,4 @@
+import PlaylistCard from "./PlaylistCard"
 
 const Home = () => {
   return (
@@ -7,8 +8,8 @@ const Home = () => {
                 <h2 className='font-semibold text-white text-5xl text-left'>Home</h2>
                 <h3 className='font-medium text-white text-3xl text-left mt-5'>Check out some public playlists!</h3>
             </div>
-            <div className='flex flex-col justify-center gap-8 text-white'>
-
+            <div className='flex flex-col my-4 w-full'>
+              <PlaylistCard />
             </div>
         </div>
     </div>
