@@ -3,11 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import jwtDecode from 'jwt-decode';
 import { TbDetails } from 'react-icons/tb';
-
+import axios from 'axios';
+import { signIn } from 'react-auth-kit';
 
 const Login = () => {
 
-
+    const [user, setUser] = useState("")
+    const [pass, setPass] = useState("")
 
     function handleCallbackResponse(response) {
         
@@ -28,11 +30,29 @@ const Login = () => {
     },[])
 
     let navigate = useNavigate(); 
-    const routeChange = () =>{ 
-        let path = `/discover`; 
+    const routeChangeSignIn = () =>{ 
+        let path = `/home`; 
         navigate(path);
     }
 
+    const routeChangeSignUp = () =>{ 
+        let path = `/signup`; 
+        navigate(path);
+    }
+
+    const handleLogin = async () => {
+        if (user.length > 0 && pass.length > 0) {
+            try {
+                const res = await axios.post('http://localhost:3000/user/login',{
+                    username: user,
+                    password: pass,
+                })
+
+            } catch(err) {
+                console.log(err);
+            }
+        }
+    } 
 
   return (
      
@@ -53,21 +73,28 @@ const Login = () => {
             </div>    
             
 
-            <form className="bg-red-200 bg-opacity-20 backdrop-blur-sm rounded drop-shadow-lg px-8 pt-6 pb-8 mb-4">
+            <form className="w-max bg-red-200 bg-opacity-20 backdrop-blur-sm rounded drop-shadow-lg px-8 pt-6 pb-8 mb-4">
                 <div className="mb-4">
                     <label className="block text-white text-sm font-bold mb-2" htmlFor="username">
                         Username
                     </label>
-                    <input className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="username" type="text" placeholder="Username"/>
+                    <input onChange={(e)=>setUser(e.target.value)} className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="username" placeholder="Username" required/>
                     </div>
                 <div className="mb-6">
                     <label className="block text-white text-sm font-bold mb-2" htmlFor="password">
                         Password
                     </label>
-                    <input className="shadow appearance-none rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline" id="password" type="password" placeholder="******************" />
+                    <input onChange={(e)=>setUser(e.target.value)} className="peer shadow appearance-none rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline" id="password" type="password" placeholder="********" required/>
+                    <p className="invisible peer-invalid:visible text-red-700 font-light">
+                        This field cannot be empty
+                    </p>
                 </div>
-                <div className="flex items-center justify-between">
-                    <button className="bg-black hover:bg-red-500 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="button" onClick={routeChange}>
+
+                <div className="flex items-center justify-between gap-4">
+                    <button className="bg-black hover:bg-red-500 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="button" onClick={() => routeChangeSignUp()}>
+                        New? Sign Up
+                    </button>
+                    <button className="bg-black hover:bg-red-500 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit" onClick={() => handleLogin()}>
                         Sign In
                     </button>
                     <div id='signInDiv'></div>
