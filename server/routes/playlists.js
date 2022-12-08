@@ -49,13 +49,19 @@ router.post("/create", passport.authenticate("jwt", { session: false }), async (
 });
 
 // if it has a playlist_id, it should be the private route. If it doesn't, it should be the public one
-router.get("/:playlist_id", passport.authenticate("jwt", { session: false }), async (req, res) => {
+router.get("/:playlist_id", async (req, res) => {
     const cleanPlaylistId = sanitizeHtml(req.params.playlist_id);
 
-    // see if user A. is the associated user with the playlist theyre requesting $1, B. if it exists $1
-    const userResult = await pool.query("SELECT playlist_id FROM playlist_users WHERE username = $1 AND playlist_id = $2", [req.user.username, cleanPlaylistId]);
+    // make sure playlist isnt private
+    const userResult = await pool.query("SELECT is_private FROM playlists WHERE playlist_id = $1", [cleanPlaylistId]);
     if (userResult.rowCount === 0) {
-        res.status(401).send("No playlist found with your username and that playlist_id");
+        res.status(404).send("Playlist not found");
+        return;
+    }
+
+    console.log(userResult.rows[0].is_private)
+    if (userResult.rows[0].is_private) {
+        res.status(401).send("Playlist is not public");
         return;
     }
 
@@ -68,7 +74,7 @@ router.get("/:playlist_id", passport.authenticate("jwt", { session: false }), as
     }
 
     if (tIdSelectResult.rows.length < 1) {
-        res.status(404).send("Playlist has no songs or does not exist");
+        res.status(404).send("Playlist has no songs"); // should this return not a 404? 
         return;
     }
 
