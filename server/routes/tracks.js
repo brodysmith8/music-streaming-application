@@ -153,7 +153,8 @@ router.get("/", (req, res) => {
             }
         });
     } else if (cleanType === "onego") {
-        let noSongs = false, noAlbums = false;
+        let noSongs = false,
+            noAlbums = false;
         let rObj = new Object();
         let sqlStr = `SELECT DISTINCT track_id, track_genres, track_title, artist_name, track_duration AS track_duration_seconds, album_title 
                       FROM tracks 
@@ -164,7 +165,6 @@ router.get("/", (req, res) => {
             if (err) {
                 throw err;
             }
-
 
             if (resp.rows.length == 0) {
                 noSongs = true;
@@ -203,9 +203,13 @@ router.get("/", (req, res) => {
                         }
 
                         if (resp3.rows.length == 0) {
-                            res.status(404).send("No songs or albums found with that name");
+                            res.status(404).send(
+                                "No songs or albums found with that name"
+                            );
                         } else if (noSongs) {
-                            res.status(404).send("No songs or albums found with that name");
+                            res.status(404).send(
+                                "No songs or albums found with that name"
+                            );
                         }
                         resObj = resp3.rows;
 
@@ -225,7 +229,7 @@ router.get("/", (req, res) => {
                 }
             });
         });
-    }else {
+    } else {
         res.status(404).send("type not found");
         return;
     }

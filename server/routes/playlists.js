@@ -1,68 +1,75 @@
 const express = require("express");
 const router = express.Router();
-const private =  require('./private/playlists');
-const review = require('./reviews');
+const private = require("./private/playlists");
+const review = require("./reviews");
 
 const passport = require("passport");
 const sanitizeHtml = require("sanitize-html");
 const pool = require("../pool.js");
 const { minutesToSeconds } = require("./helpers");
 
-router.use('/private', private);
+router.use("/private", private);
 
-router.use('/review', review);
+router.use("/review", review);
 
-router.post("/create", passport.authenticate("jwt", { session: false }), async (req, res) => {
-    // song list is in request body
-    const playlistName = sanitizeHtml(req.body.playlist_name);
-    const username = req.user.username;
-    const description = sanitizeHtml(req.body.description); // needs to be "" in the request if not supplied
-    let isPrivate = sanitizeHtml(req.body.isPrivate); // needs to be supplied in request
+router.post(
+    "/create",
+    passport.authenticate("jwt", { session: false }),
+    async (req, res) => {
+        // song list is in request body
+        const playlistName = sanitizeHtml(req.body.playlist_name);
+        const username = req.user.username;
+        const description = sanitizeHtml(req.body.description); // needs to be "" in the request if not supplied
+        let isPrivate = sanitizeHtml(req.body.isPrivate); // needs to be supplied in request
 
-    if (
-        playlistName === "" ||
-        isPrivate === ""
-    ) {
-        res.status(400).send("Ensure playlist_name and is_private fields are filled");
-        return;
+        if (playlistName === "" || isPrivate === "") {
+            res.status(400).send(
+                "Ensure playlist_name and is_private fields are filled"
+            );
+            return;
+        }
+
+        // make sure user exists
+        let query = "SELECT * FROM users WHERE username = $1";
+        let response = await pool.query(query, [username]);
+        if (response.rowCount == 0) {
+            res.status(404).send("User not found");
+            return;
+        }
+
+        query = `INSERT INTO playlists (playlist_name, running_time, last_modified_datetime, description_text, is_private, average_rating) VALUES (\'${playlistName}\', ${0}, \'${new Date(
+            new Date().toString().split("GMT")[0] + " UTC"
+        ).toISOString()}\', \'${description}\', ${isPrivate}, ${0}) RETURNING playlist_id`;
+        response = await pool.query(query);
+        let playlist_id = response.rows[0].playlist_id;
+
+        query =
+            "INSERT INTO playlist_users (playlist_id, username) VALUES ($1, $2)";
+        response = await pool.query(query, [playlist_id, username]);
+
+        if (!response.err) {
+            res.send(`${playlist_id}`);
+            return;
+        }
+        res.status(500).send("Error");
     }
-
-    // make sure user exists
-    let query = "SELECT * FROM users WHERE username = $1";
-    let response = await pool.query(query, [username]);
-    if (response.rowCount == 0) {
-        res.status(404).send("User not found");
-        return;
-    }
-
-    query =
-        `INSERT INTO playlists (playlist_name, running_time, last_modified_datetime, description_text, is_private, average_rating) VALUES (\'${playlistName}\', ${0}, \'${new Date(new Date().toString().split('GMT')[0]+' UTC').toISOString()}\', \'${description}\', ${isPrivate}, ${0}) RETURNING playlist_id`;
-    response = await pool.query(query);
-    let playlist_id = response.rows[0].playlist_id;
-
-    query =
-        "INSERT INTO playlist_users (playlist_id, username) VALUES ($1, $2)";
-    response = await pool.query(query, [playlist_id, username]);
-
-    if (!response.err) {
-        res.send(`${playlist_id}`);
-        return;
-    }
-    res.status(500).send("Error");
-});
+);
 
 // public playlist getter
 router.get("/:playlist_id", async (req, res) => {
     const cleanPlaylistId = sanitizeHtml(req.params.playlist_id);
 
     // make sure playlist isnt private
-    const userResult = await pool.query("SELECT is_private FROM playlists WHERE playlist_id = $1", [cleanPlaylistId]);
+    const userResult = await pool.query(
+        "SELECT is_private FROM playlists WHERE playlist_id = $1",
+        [cleanPlaylistId]
+    );
     if (userResult.rowCount === 0) {
         res.status(404).send("Playlist not found");
         return;
     }
 
-    console.log(userResult.rows[0].is_private)
+    console.log(userResult.rows[0].is_private);
     if (userResult.rows[0].is_private) {
         res.status(401).send("Playlist is not public");
         return;
@@ -77,7 +84,7 @@ router.get("/:playlist_id", async (req, res) => {
     }
 
     if (tIdSelectResult.rows.length < 1) {
-        res.status(404).send("Playlist has no songs"); // should this return not a 404? 
+        res.status(404).send("Playlist has no songs"); // should this return not a 404?
         return;
     }
 
@@ -101,25 +108,34 @@ router.get("/:playlist_id", async (req, res) => {
 });
 
 // add JWT verification here so that a user who isn't the authorized user can't delete playlist
-router.delete("/:playlist_id", passport.authenticate("jwt", { session: false }), async (req, res) => {
-    const cleanPlaylistId = sanitizeHtml(req.params.playlist_id);
+router.delete(
+    "/:playlist_id",
+    passport.authenticate("jwt", { session: false }),
+    async (req, res) => {
+        const cleanPlaylistId = sanitizeHtml(req.params.playlist_id);
 
-    // see if user A. is the associated user with the playlist theyre requesting $1, B. if it exists $1
-    const userResult = await pool.query("SELECT playlist_id FROM playlist_users WHERE username = $1 AND playlist_id = $2", [req.user.username, cleanPlaylistId]);
-    if (userResult.rowCount === 0) {
-        res.status(401).send("No playlist found with your username and that playlist_id");
-        return;
+        // see if user A. is the associated user with the playlist theyre requesting $1, B. if it exists $1
+        const userResult = await pool.query(
+            "SELECT playlist_id FROM playlist_users WHERE username = $1 AND playlist_id = $2",
+            [req.user.username, cleanPlaylistId]
+        );
+        if (userResult.rowCount === 0) {
+            res.status(401).send(
+                "No playlist found with your username and that playlist_id"
+            );
+            return;
+        }
+
+        let query = "DELETE FROM playlists WHERE playlist_id = $1";
+        const response = await pool.query(query, [cleanPlaylistId]);
+
+        if (response.rowCount === 0) {
+            res.status(404).send("No playlist with that ID found to delete");
+            return;
+        }
+        res.send(cleanPlaylistId);
     }
-
-    let query = "DELETE FROM playlists WHERE playlist_id = $1";
-    const response = await pool.query(query, [cleanPlaylistId]);
-
-    if (response.rowCount === 0) {
-        res.status(404).send("No playlist with that ID found to delete");
-        return;
-    }
-    res.send(cleanPlaylistId);
-});
+);
 
 // public route
 router.get("/", async (req, res) => {
