@@ -43,10 +43,13 @@ const Login = () => {
     const handleLogin = async () => {
         if (user.length > 0 && pass.length > 0) {
             try {
-                const res = await axios.post('http://localhost:3000/user/login',{
+                console.log("test");
+                const res = await axios.post('http://localhost:3000/api/user/login',{
                     username: user,
                     password: pass,
                 })
+
+                console.log(res);
 
             } catch(err) {
                 console.log(err);
@@ -76,9 +79,9 @@ const Login = () => {
             <form className="w-max bg-red-200 bg-opacity-20 backdrop-blur-sm rounded drop-shadow-lg px-8 pt-6 pb-8 mb-4">
                 <div className="mb-4">
                     <label className="block text-white text-sm font-bold mb-2" htmlFor="username">
-                        Username
+                        Email
                     </label>
-                    <input onChange={(e)=>setUser(e.target.value)} className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="username" placeholder="Username" required/>
+                    <input onChange={(e)=>setUser(e.target.value)} className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" type="email" id="username" placeholder="Username" required/>
                     </div>
                 <div className="mb-6">
                     <label className="block text-white text-sm font-bold mb-2" htmlFor="password">
@@ -94,7 +97,7 @@ const Login = () => {
                     <button className="bg-black hover:bg-red-500 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="button" onClick={() => routeChangeSignUp()}>
                         New? Sign Up
                     </button>
-                    <button className="bg-black hover:bg-red-500 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit" onClick={() => handleLogin()}>
+                    <button className="bg-black hover:bg-red-500 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="button" onClick={() => handleLogin()}>
                         Sign In
                     </button>
                     <div id='signInDiv'></div>

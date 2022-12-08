@@ -39,9 +39,6 @@ const Home = () => {
                 {data.map((playlist) => (
                   <div key={playlist.playlist_id}>
                     <PlaylistCard key={playlist.playlist_id} playlist={playlist}/>
-                    {/* {track.map((track) => (
-                      <Trackcard key={track.track_id} track={track}/>
-                    ))} */}
                   </div>
                 ))}
             </div>
