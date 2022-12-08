@@ -10,7 +10,7 @@ const Trackcard = ({track}) => {
   const ytQueryArtist = track.artist_name.replace(/\s/g, "+");
 
   return (
-    <div className='my-4 hover:bg-[#330404] p-4 hover: rounded-t-sm' style={{backgroundColor: toggeled ? '#330404':''}} onClick={() => setToggled(!toggeled)} >
+    <div className='my-4 p-2 hover:bg-[#330404]  hover:p-4 rounded-t-sm' style={{backgroundColor: toggeled ? '#330404':''}} onClick={() => setToggled(!toggeled)} >
         <div className='flex flex-row w-full justify-between items-center  '>
           <div className='flex'>
             <div className='flex flex-col justify-center items-center w-16 h-16 rounded-sm bg-white'>

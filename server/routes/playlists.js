@@ -101,7 +101,7 @@ router.get("/", async (req, res) => {
     const query = `SELECT *
     FROM playlists
     WHERE is_private = false
-    LIMIT 10;`;
+    LIMIT 20;`;
     const response = await pool.query(query);
     if (response.rowCount === 0) {
         res.status(404).send("No public playlists in the DB");
