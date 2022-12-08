@@ -2,25 +2,25 @@ const express = require("express");
 const router = express.Router();
 const private =  require('./private/playlists');
 
+const passport = require("passport");
 const sanitizeHtml = require("sanitize-html");
 const pool = require("../pool.js");
 const { minutesToSeconds } = require("./helpers");
 
 router.use('/private', private);
 
-router.post("/create", async (req, res) => {
+router.post("/create", passport.authenticate("jwt", { session: false }), async (req, res) => {
     // song list is in request body
     const playlistName = sanitizeHtml(req.body.playlist_name);
-    const username = sanitizeHtml(req.body.username);
+    const username = req.user.username;
     const description = sanitizeHtml(req.body.description); // needs to be "" in the request if not supplied
     let isPrivate = sanitizeHtml(req.body.isPrivate); // needs to be supplied in request
 
     if (
         playlistName === "" ||
-        username === "" ||
         isPrivate === ""
     ) {
-        res.status(400).send("Ensure playlist_name, username, and is_private fields are filled");
+        res.status(400).send("Ensure playlist_name and is_private fields are filled");
         return;
     }
 
@@ -48,8 +48,17 @@ router.post("/create", async (req, res) => {
     res.status(500).send("Error");
 });
 
-router.get("/:playlist_id", async (req, res) => {
+// if it has a playlist_id, it should be the private route. If it doesn't, it should be the public one
+router.get("/:playlist_id", passport.authenticate("jwt", { session: false }), async (req, res) => {
     const cleanPlaylistId = sanitizeHtml(req.params.playlist_id);
+
+    // see if user A. is the associated user with the playlist theyre requesting $1, B. if it exists $1
+    const userResult = await pool.query("SELECT playlist_id FROM playlist_users WHERE username = $1 AND playlist_id = $2", [req.user.username, cleanPlaylistId]);
+    if (userResult.rowCount === 0) {
+        res.status(401).send("No playlist found with your username and that playlist_id");
+        return;
+    }
+
     const tIdSelectResult = await pool.query(
         "SELECT track_id FROM playlist_tracks WHERE playlist_id = $1",
         [cleanPlaylistId]
@@ -84,8 +93,15 @@ router.get("/:playlist_id", async (req, res) => {
 
 // add JWT verification here so that a user who isn't the authorized user can't delete playlist
 // probs move to private tbh........
-router.delete("/:playlist_id", async (req, res) => {
+router.delete("/:playlist_id", passport.authenticate("jwt", { session: false }), async (req, res) => {
     const cleanPlaylistId = sanitizeHtml(req.params.playlist_id);
+
+    // see if user A. is the associated user with the playlist theyre requesting $1, B. if it exists $1
+    const userResult = await pool.query("SELECT playlist_id FROM playlist_users WHERE username = $1 AND playlist_id = $2", [req.user.username, cleanPlaylistId]);
+    if (userResult.rowCount === 0) {
+        res.status(401).send("No playlist found with your username and that playlist_id");
+        return;
+    }
 
     let query = "DELETE FROM playlists WHERE playlist_id = $1";
     const response = await pool.query(query, [cleanPlaylistId]);
@@ -97,6 +113,7 @@ router.delete("/:playlist_id", async (req, res) => {
     res.send(cleanPlaylistId);
 });
 
+// public route
 router.get("/", async (req, res) => {
     const query = `SELECT *
     FROM playlists

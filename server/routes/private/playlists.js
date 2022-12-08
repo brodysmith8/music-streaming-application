@@ -1,18 +1,19 @@
 const express = require("express");
 const router = express.Router();
 
+const passport = require("passport");
 const sanitizeHtml = require("sanitize-html");
 const pool = require("../../pool.js");
 const { minutesToSeconds } = require("../helpers");
 
 /* I think basically all of these need JWT verification */
 
-router.get("/:username", async (req, res) => {
+router.get("/", passport.authenticate("jwt", { session: false }), async (req, res) => {
     const query = `SELECT *
     FROM playlists p 
     WHERE p.playlist_id IN (SELECT pu.playlist_id FROM playlist_users pu WHERE pu.username = $1)
     LIMIT 20;`;
-    const response = await pool.query(query, [req.params.username]);
+    const response = await pool.query(query, [req.user.username]);
     if (response.rowCount === 0) {
         res.status(404).send("No playlists belonging to this user");
         return;
@@ -21,12 +22,18 @@ router.get("/:username", async (req, res) => {
     return;
 });
 
-router.put("/:playlist_id", async (req, res) => {
+router.put("/:playlist_id", passport.authenticate("jwt", { session: false }), async (req, res) => {
     const songList = sanitizeHtml(req.body.track_list).split(",");
     const playlistId = sanitizeHtml(req.params.playlist_id);
 
-    // in lieu of a JWT, pass username as a field in the body
-    const username = req.body.username;
+    const username = req.user.username;
+
+    // if playlist exists and does not belong to user, kill em
+    const userResult = await pool.query("SELECT playlist_id FROM playlist_users WHERE username != $1 AND playlist_id = $2", [req.user.username, playlistId]);
+    if (userResult.rowCount > 0) {
+        res.status(401).send("No playlist found with your username and that playlist_id");
+        return;
+    }
 
     /** steps:
      * 1. validate input

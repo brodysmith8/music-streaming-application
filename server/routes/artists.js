@@ -56,35 +56,4 @@ router.get('/', (req, res) => {
     });
 });
 
-router.post("/login", async (req, res) => {
-    const username = req.body.username;
-    const password = req.body.password;
-
-    if (username === "" || password === "") {
-        res.status(400).send("Ensure all fields are filled.");
-        return;
-    }
-
-    try {
-        const query = "SELECT password FROM \"users\" WHERE (username = $1)"
-        const result = await pool.query(query, [username]);
-        if (result.rowCount == 1) {
-            if (await argon2.verify(result.rows[0].password, password)) {
-                res.send("success");
-                return;
-            } else {
-                res.status(401).send("password incorrect");
-                return;
-            }
-        } else {
-            res.status(404).send("Account not found");
-            return;
-        }
-    } catch (err) {
-        console.log("Err: " + err);
-        res.status(500).send("Error");
-        return;
-    }
-});
-
 module.exports = router;

@@ -1,8 +1,11 @@
 const express = require("express");
 const router = express.Router();
 
+const passport = require("passport");
+const sanitizeHtml = require("sanitize-html");
 const pool = require("../pool.js");
 const argon2 = require('argon2');
+const jwt = require("jsonwebtoken");
 
 router.post("/create", async (req, res) => {
     let hash;
@@ -35,21 +38,40 @@ router.post("/create", async (req, res) => {
     }
 });
 
-router.post("/login", async (req, res) => {
-    const username = req.body.username;
-    const password = req.body.password;
+/**
+ * JWT:
+ * - base64 encoded
+ * takes form: "[header].[payload].[verifysignature]"
+ * header:
+ *  algorithm, type of token 
+ * payload:
+ *  bunch of stuff (sub, name, iat, etc.)
+ * verifysignature: (kinda like a checksum with hashing -> called Hash-based Message Authentication Code (HMAC))
+ *  HMACSHA256(
+        base64UrlEncode(header) + "." +
+        base64UrlEncode(payload),
+        256-bit-secret
+    )
+ */
 
-    if (username === "" || password === "") {
+// we need our payload to be {email, username} so the client side can use it
+// to send to the api
+router.post("/login", async (req, res) => {
+    const email_address_in = sanitizeHtml(req.body.email_address);
+    const password = sanitizeHtml(req.body.password);
+
+    if (email_address_in === "" || password === "") {
         res.status(400).send("Ensure all fields are filled.");
         return;
     }
 
     try {
-        const query = "SELECT password FROM \"users\" WHERE (username = $1)"
-        const result = await pool.query(query, [username]);
+        const query = "SELECT username, password FROM \"users\" WHERE (email_address = $1)"
+        const result = await pool.query(query, [email_address_in]);
         if (result.rowCount == 1) {
             if (await argon2.verify(result.rows[0].password, password)) {
-                res.send("success");
+                const jwToken = jwt.sign({ email_address: email_address_in, username: result.rows[0].username, }, process.env.JWT_SECRET);
+                res.send({ message: "success", token: jwToken} );
                 return;
             } else {
                 res.status(401).send("password incorrect");
@@ -66,12 +88,12 @@ router.post("/login", async (req, res) => {
     }
 });
 
-router.post("/change_password", async (req, res) => {
+router.post("/change_password", passport.authenticate("jwt", { session: false }), async (req, res) => {
     const password = req.body.old_password;
     const new_p = req.body.new_password;
-    const email = req.body.email_address;
+    const email = req.user.email_address;
 
-    if (password === "" || new_p === "" || email === "") {
+    if (password === "" || new_p === "") {
         res.status(400).send("Ensure all fields are filled.");
         return;
     }
