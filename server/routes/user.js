@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 
+const passport = require("passport");
 const sanitizeHtml = require("sanitize-html");
 const pool = require("../pool.js");
 const argon2 = require('argon2');
@@ -69,8 +70,8 @@ router.post("/login", async (req, res) => {
         const result = await pool.query(query, [email_address_in]);
         if (result.rowCount == 1) {
             if (await argon2.verify(result.rows[0].password, password)) {
-                //const jwToken = jwt.sign({ email_address: email_address_in, username: result.rows[0].username, }, secret);
-                res.send("success");
+                const jwToken = jwt.sign({ email_address: email_address_in, username: result.rows[0].username, }, process.env.JWT_SECRET);
+                res.send({ message: "success", token: jwToken} );
                 return;
             } else {
                 res.status(401).send("password incorrect");
@@ -87,12 +88,12 @@ router.post("/login", async (req, res) => {
     }
 });
 
-router.post("/change_password", async (req, res) => {
+router.post("/change_password", passport.authenticate("jwt", { session: false }), async (req, res) => {
     const password = req.body.old_password;
     const new_p = req.body.new_password;
-    const email = req.body.email_address;
+    const email = req.user.email_address;
 
-    if (password === "" || new_p === "" || email === "") {
+    if (password === "" || new_p === "") {
         res.status(400).send("Ensure all fields are filled.");
         return;
     }

@@ -4,6 +4,9 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 
+// authentication
+require("./auth/passport");
+
 // routes
 const playlists =  require('./routes/playlists');
 const genres =  require('./routes/genres');
