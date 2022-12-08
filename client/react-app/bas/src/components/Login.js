@@ -84,7 +84,7 @@ const Login = () => {
                     <label className="block text-white text-sm font-bold mb-2" htmlFor="password">
                         Password
                     </label>
-                    <input onChange={(e)=>setUser(e.target.value)} className="peer shadow appearance-none rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline" id="password" type="password" placeholder="********" required/>
+                    <input onChange={(e)=>setPass(e.target.value)} className="peer shadow appearance-none rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline" id="password" type="password" placeholder="********" required/>
                     <p className="invisible peer-invalid:visible text-red-700 font-light">
                         This field cannot be empty
                     </p>
