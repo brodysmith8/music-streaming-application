@@ -36,5 +36,31 @@ router.post( "/", async (req, res) => { // route that site manager can use to up
 
 });
 
+router.put("/", async (req, res) => { // route that site manager can use to create a new privacy policy
+
+    const policyInformation = sanitizeHtml(req.body.policyInformation); // policy information from the privacy policy table
+    const policyID = sanitizeHtml(req.body.policyID); // policy
+    const query = `INSERT INTO privacy_policy (policy_information, policy_id) VALUES (\'${policyInformation}\', ${policyID})`
+
+    console.log(query);
+
+    await pool.query(query, (err, doc) => { // callback function to handle errors and successful updates *Want to send a document as a parameter to the callback function*?
+
+        if (err){
+
+            // send a response error message to the site manager if the update fails
+            res.status(500).send("Error creating Privacy Policy!");
+        }
+
+        else {
+
+            // send a response message to the site manager if the update is successful
+            res.send("Privacy Policy created!");
+
+        }
+    });
+
+});
+
 module .exports = router; // export the router
 

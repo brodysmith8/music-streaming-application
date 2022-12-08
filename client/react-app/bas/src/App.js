@@ -6,7 +6,10 @@ import AddPlaylist from './components/AddPlaylist';
 import Sidebar from './components/Sidebar';
 import Discover from './components/Discover';
 import SignUp from './components/SignUp';
+import PrivatePlaylists from './components/PrivatePlaylists';
+import EditPlaylistBoiler from './components/EditPlaylistBoiler';
 import { useState } from 'react';
+import { RequireAuth } from 'react-auth-kit';
 
 function App() {
   const [isRenderd, setIsRendered] = useState(false);
@@ -20,7 +23,21 @@ function App() {
           <Route path="/signup" element={<SignUp />} />  
           <Route path="/home" element={<><Home /></>} />
           <Route path="/discover" element={<><Discover /></>} />
-          <Route path="/addplaylists" element={<><AddPlaylist/></>} />
+          <Route path="/addplaylists" element={<>
+            <RequireAuth loginPath='/'>
+              <AddPlaylist/>
+            </RequireAuth>
+          </>} />
+          <Route path="/yourplaylists" element={<>
+            <RequireAuth loginPath='/'>
+              <PrivatePlaylists/>
+            </RequireAuth>
+          </>} />
+          <Route path="/editplaylists" element={<>
+            <RequireAuth loginPath='/'>
+              <EditPlaylistBoiler/>
+            </RequireAuth>
+          </>} />
         </Routes>
       </div>
     </div>
