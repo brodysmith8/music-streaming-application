@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const private =  require('./private/playlists');
+const review = require('./reviews');
 
 const passport = require("passport");
 const sanitizeHtml = require("sanitize-html");
@@ -8,6 +9,8 @@ const pool = require("../pool.js");
 const { minutesToSeconds } = require("./helpers");
 
 router.use('/private', private);
+
+router.use('/review', review);
 
 router.post("/create", passport.authenticate("jwt", { session: false }), async (req, res) => {
     // song list is in request body

@@ -26,7 +26,6 @@ app.use(cors({ origin: '*' }));
 /* app.use(auth(config)); */
 
 // General
-
 app.get('/api', (req, res) => {
     res.send('Please add /tracks, /albums, /artist, or /genre followed by a resource reference after your request.');
 });
