@@ -4,12 +4,13 @@ import { useEffect, useState } from 'react';
 import jwtDecode from 'jwt-decode';
 import { TbDetails } from 'react-icons/tb';
 import axios from 'axios';
-import { signIn } from 'react-auth-kit';
+import { useSignIn } from 'react-auth-kit';
 
 const Login = () => {
 
-    const [user, setUser] = useState("")
+    const [email, setEmail] = useState("")
     const [pass, setPass] = useState("")
+    const signIn = useSignIn();
 
     function handleCallbackResponse(response) {
         
@@ -41,18 +42,28 @@ const Login = () => {
     }
 
     const handleLogin = async () => {
-        if (user.length > 0 && pass.length > 0) {
+        if (email.length > 0 && pass.length > 0) {
             try {
-                console.log("test");
+
                 const res = await axios.post('http://localhost:3000/api/user/login',{
-                    username: user,
+                    email_address: email,
                     password: pass,
                 })
-
                 console.log(res);
+                
+                if(res.data.message == "success") {
+                    routeChangeSignIn()
+                } 
+
+                signIn({
+                    token: res.data.token,
+                    expiresIn: 10,
+                    tokenType: "Bearer",
+                    authState: {email: email}
+                })
 
             } catch(err) {
-                console.log(err);
+                alert("invalid login")
             }
         }
     } 
@@ -81,7 +92,7 @@ const Login = () => {
                     <label className="block text-white text-sm font-bold mb-2" htmlFor="username">
                         Email
                     </label>
-                    <input onChange={(e)=>setUser(e.target.value)} className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" type="email" id="username" placeholder="Username" required/>
+                    <input onChange={(e)=>setEmail(e.target.value)} className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" type="email" id="username" placeholder="Username" required/>
                     </div>
                 <div className="mb-6">
                     <label className="block text-white text-sm font-bold mb-2" htmlFor="password">

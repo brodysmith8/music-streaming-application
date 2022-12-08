@@ -5,11 +5,21 @@ import { RiCloseLine } from 'react-icons/ri'
 import { BiSearchAlt } from 'react-icons/bi'
 import { FiHome } from 'react-icons/fi'
 import { RiPlayListAddLine } from 'react-icons/ri'
-
+import { useSignOut } from 'react-auth-kit'
+import { useNavigate } from 'react-router-dom'
 
 const Sidebar = () => {
 
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const signOut = useSignOut();
+
+    let navigate = useNavigate(); 
+
+    const logout = () => {
+        signOut()
+        setMobileMenuOpen(false)
+        navigate('/')
+    }
 
     return (
         <>
@@ -27,6 +37,9 @@ const Sidebar = () => {
                     <li className='flex flex-row justify-start items-center my-8 text-lg font-regular text-white hover:text-red-500'>    
                             <RiPlayListAddLine className='w-6 h-6 mr-2'/>
                             <a href='/addplaylists' onClick={() => setMobileMenuOpen(false)}>Add Playlist</a>
+                    </li>
+                    <li className='flex flex-row justify-start items-center my-8 text-lg font-regular text-white hover:text-red-500'>
+                        <button onClick={() => logout()}>Log Out</button>
                     </li>
                 </ul>
             </nav>
@@ -51,6 +64,9 @@ const Sidebar = () => {
                         <li className='flex flex-row justify-start items-center my-8 text-lg font-regular text-white hover:text-red-500'>    
                             <RiPlayListAddLine className='w-6 h-6 mr-2'/>
                             <a href='/playlists' onClick={() => setMobileMenuOpen(false)}>Add Playlist</a>
+                        </li>
+                        <li className='flex flex-row justify-start items-center my-8 text-lg font-regular text-white hover:text-red-500'>
+                            <button onClick={() => logout()}>Log Out</button>
                         </li>
                     </ul>
                 </nav>

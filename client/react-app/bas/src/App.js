@@ -7,6 +7,7 @@ import Sidebar from './components/Sidebar';
 import Discover from './components/Discover';
 import SignUp from './components/SignUp';
 import { useState } from 'react';
+import { RequireAuth } from 'react-auth-kit';
 
 function App() {
   const [isRenderd, setIsRendered] = useState(false);
@@ -20,7 +21,11 @@ function App() {
           <Route path="/signup" element={<SignUp />} />  
           <Route path="/home" element={<><Home /></>} />
           <Route path="/discover" element={<><Discover /></>} />
-          <Route path="/addplaylists" element={<><AddPlaylist/></>} />
+          <Route path="/addplaylists" element={<>
+            <RequireAuth loginPath='/'>
+              <AddPlaylist/>
+            </RequireAuth>
+          </>} />
         </Routes>
       </div>
     </div>
