@@ -5,20 +5,56 @@ const passport = require("passport");
 const sanitizeHtml = require("sanitize-html");
 const pool = require("../pool.js");
 
+// grant admin
 router.put(
-    "/user/:username",
+    "/user/give_admin/:username",
     passport.authenticate("jwt", { session: false }),
     async (req, res) => {
-        if (req.user.username !== "admin") {
+        if (req.user.username !== "administrator") {
             res.status(403).send("Administrator only");
             return;
         }
 
         // grant admin
+        let query = `UPDATE \"users\" SET is_admin = ${req.body.admin_status} WHERE username = \'${req.params.username}\'`;
+        console.log(query);
+        const resp = await pool.query(query);
+
+        res.send(req.params.username);
+    }
+);
+
+router.put(
+    "/user/verify/:username",
+    passport.authenticate("jwt", { session: false }),
+    async (req, res) => {
+        if (req.user.username !== "administrator") {
+            res.status(403).send("Administrator only");
+            return;
+        }
 
         // set verified or not
+        let query = `UPDATE users SET is_verified = ${req.body.verification_status} WHERE username = \'${req.params.username}\'`;
+        const resp = await pool.query(query);
+
+        res.send(req.params.username);
+    }
+);
+
+router.put(
+    "/user/activate/:username",
+    passport.authenticate("jwt", { session: false }),
+    async (req, res) => {
+        if (req.user.username !== "administrator") {
+            res.status(403).send("Administrator only");
+            return;
+        }
 
         // set activated or not
+        let query = `UPDATE \"users\" SET is_activated = ${req.body.activation_status} WHERE username = \'${req.params.username}\'`;
+        const resp = await pool.query(query);
+
+        res.send(req.params.username);
     }
 );
 
@@ -36,6 +72,23 @@ router.put(
         const qResp = await pool.query(query);
         res.send(`${req.params.review_id}`);
         return;
+    }
+);
+
+router.get(
+    "/user/:username",
+    passport.authenticate("jwt", { session: false }),
+    async (req, res) => {
+        if (req.user.username !== "administrator") {
+            res.status(403).send("Administrator only");
+            return;
+        }
+
+        // set activated or not
+        let query = `SELECT * FROM \"users\" WHERE username = \'${req.params.username}\'`;
+        const resp = await pool.query(query);
+
+        res.send(resp.rows[0]);
     }
 );
 
