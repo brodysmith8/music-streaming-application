@@ -67,8 +67,10 @@ router.put(
             return;
         }
 
-        // set hidden or not 
-        const query = `UPDATE reviews SET is_hidden=${req.body.hidden} WHERE review_id = ${sanitizeHtml(req.params.review_id)}`;
+        // set hidden or not
+        const query = `UPDATE reviews SET is_hidden=${
+            req.body.hidden
+        } WHERE review_id = ${sanitizeHtml(req.params.review_id)}`;
         const qResp = await pool.query(query);
         res.send(`${req.params.review_id}`);
         return;
