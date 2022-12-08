@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const private =  require('./private/playlists');
+const review = require('./reviews');
 
 const passport = require("passport");
 const sanitizeHtml = require("sanitize-html");
@@ -8,6 +9,8 @@ const pool = require("../pool.js");
 const { minutesToSeconds } = require("./helpers");
 
 router.use('/private', private);
+
+router.use('/review', review);
 
 router.post("/create", passport.authenticate("jwt", { session: false }), async (req, res) => {
     // song list is in request body
@@ -48,7 +51,7 @@ router.post("/create", passport.authenticate("jwt", { session: false }), async (
     res.status(500).send("Error");
 });
 
-// if it has a playlist_id, it should be the private route. If it doesn't, it should be the public one
+// public playlist getter
 router.get("/:playlist_id", async (req, res) => {
     const cleanPlaylistId = sanitizeHtml(req.params.playlist_id);
 
@@ -98,7 +101,6 @@ router.get("/:playlist_id", async (req, res) => {
 });
 
 // add JWT verification here so that a user who isn't the authorized user can't delete playlist
-// probs move to private tbh........
 router.delete("/:playlist_id", passport.authenticate("jwt", { session: false }), async (req, res) => {
     const cleanPlaylistId = sanitizeHtml(req.params.playlist_id);
 
@@ -121,8 +123,9 @@ router.delete("/:playlist_id", passport.authenticate("jwt", { session: false }),
 
 // public route
 router.get("/", async (req, res) => {
-    const query = `SELECT *
+    const query = `SELECT playlists.*, playlist_users.username
     FROM playlists
+    INNER JOIN playlist_users ON playlists.playlist_id = playlist_users.playlist_id
     WHERE is_private = false
     LIMIT 20;`;
     const response = await pool.query(query);

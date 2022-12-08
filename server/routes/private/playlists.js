@@ -77,6 +77,15 @@ router.put("/:playlist_id", passport.authenticate("jwt", { session: false }), as
         return;
     }
 
+    // make sure all songs in the song list exist; reject if not:
+    const existQuery = `SELECT track_id FROM tracks WHERE track_id IN (${songList.toString()})`;
+    const existResponse = await pool.query(existQuery);
+
+    if(existResponse.rowCount !== songList.length) {
+        res.status(404).send("One of those songs does not exist");
+        return;
+    }
+
     /** steps:
      * 1. validate input
      * 2. make sure playlist exists

@@ -66,9 +66,14 @@ router.post("/login", async (req, res) => {
     }
 
     try {
-        const query = "SELECT username, password FROM \"users\" WHERE (email_address = $1)"
+        const query = "SELECT username, password, is_activated FROM \"users\" WHERE email_address = $1";
         const result = await pool.query(query, [email_address_in]);
         if (result.rowCount == 1) {
+            if (result.rows[0].is_activated === false) {
+                res.status(403).send("Account deactivated. Please message admin at admin@basmusic.com");
+                return;
+            }
+
             if (await argon2.verify(result.rows[0].password, password)) {
                 const jwToken = jwt.sign({ email_address: email_address_in, username: result.rows[0].username, }, process.env.JWT_SECRET);
                 res.send({ message: "success", token: jwToken} );
