@@ -36,4 +36,31 @@ router.post("/", async (req, res) => { // route that site manager can use to upd
         });
 });
 
+router.put("/", async (req, res) => { // route that site manager can use to create a new aup policy
+
+    const aupPolicyInformation = sanitizeHtml(req.body.aup_policy_information); // policy information from the aup policy table
+    const aupID = sanitizeHtml(req.body.aupID); // policy ID from the aup policy table
+    const query = `INSERT INTO aup_policy (aup_policy_information, aup_id) VALUES (\'${aupPolicyInformation}\', ${aupID})` // query to create a new aup policy
+
+    console.log(query);
+
+    await pool.query (query, (err, doc) => { // callback function to handle errors and successful updates *Want to send a document as a parameter to the callback function*?
+                
+            if (err){
+
+                // send a response error message to the site manager if the update fails
+                res.status(500).send("Error creating AUP policy!");
+            }
+
+            else {
+
+                // send a response message to the site manager if the update is successful
+                res.send("AUP policy created!");
+
+                }
+            }
+        );
+});
+
+
 module.exports = router; // export the router
