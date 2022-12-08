@@ -16,6 +16,7 @@ const user =  require('./routes/user');
 const privacyPolicy = require('./routes/privacyPolicy'); // import the privacy policy route
 const dmca = require('./routes/dmca');  // import the dmca route
 const aup = require('./routes/aup'); // import the aup route
+const admin = require('./routes/admin');
 
 const app = express();
 module.exports = app;
@@ -54,6 +55,8 @@ app.use('/api/dmca_policy', dmca);
 // Route for a site manager to be able to add an AUP policy
 app.use('/api/aup_policy', aup);
 
+// Admin
+app.use('/api/admin', admin);
 
 // Have the app listen on the specified port environment variable or 3000 if env var is undefined
 const port = process.env.PORT || 3000;
