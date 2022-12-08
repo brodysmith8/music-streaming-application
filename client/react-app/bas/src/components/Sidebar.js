@@ -36,7 +36,15 @@ const Sidebar = () => {
                     </li>
                     <li className='flex flex-row justify-start items-center my-8 text-lg font-regular text-white hover:text-red-500'>    
                             <RiPlayListAddLine className='w-6 h-6 mr-2'/>
-                            <a href='/addplaylists' onClick={() => setMobileMenuOpen(false)}>Add Playlist</a>
+                            <a href='/addplaylists' >Add Playlist</a>
+                    </li>
+                    <li className='flex flex-row justify-start items-center my-8 text-lg font-regular text-white hover:text-red-500'>    
+                            <RiPlayListAddLine className='w-6 h-6 mr-2'/>
+                            <a href='/yourplaylists'>Your Playlists</a>
+                    </li>
+                    <li className='flex flex-row justify-start items-center my-8 text-lg font-regular text-white hover:text-red-500'>    
+                            <RiPlayListAddLine className='w-6 h-6 mr-2'/>
+                            <a href='/editplaylists'>Edit/Add</a>
                     </li>
                     <li className='flex flex-row justify-start items-center my-8 text-lg font-regular text-white hover:text-red-500'>
                         <button onClick={() => logout()}>Log Out</button>
@@ -64,6 +72,14 @@ const Sidebar = () => {
                         <li className='flex flex-row justify-start items-center my-8 text-lg font-regular text-white hover:text-red-500'>    
                             <RiPlayListAddLine className='w-6 h-6 mr-2'/>
                             <a href='/playlists' onClick={() => setMobileMenuOpen(false)}>Add Playlist</a>
+                        </li>
+                        <li className='flex flex-row justify-start items-center my-8 text-lg font-regular text-white hover:text-red-500'>    
+                            <RiPlayListAddLine className='w-6 h-6 mr-2'/>
+                            <a href='/yourplaylists' onClick={() => setMobileMenuOpen(false)}>Your Playlists</a>
+                        </li>
+                        <li className='flex flex-row justify-start items-center my-8 text-lg font-regular text-white hover:text-red-500'>    
+                            <RiPlayListAddLine className='w-6 h-6 mr-2'/>
+                            <a href='/editplaylists'>Edit/Add</a>
                         </li>
                         <li className='flex flex-row justify-start items-center my-8 text-lg font-regular text-white hover:text-red-500'>
                             <button onClick={() => logout()}>Log Out</button>
