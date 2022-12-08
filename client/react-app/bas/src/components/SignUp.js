@@ -21,7 +21,7 @@ const SignUp = () => {
 
         if(email.length > 0 && username.length > 0 && password.length > 0) {
 
-            axios.post(`http://localhost:3000/user/create`,{
+            axios.post(`http://localhost:3000/api/user/create`,{
                 email_address: email,
                 username: username,
                 password: password 

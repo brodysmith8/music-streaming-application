@@ -32,8 +32,6 @@ const Searchbar = () => {
             const result = [...new Set(res.map(obj => JSON.stringify(obj)))]
             .map(str => JSON.parse(str));
 
-
-
             setData(result);
 
 
