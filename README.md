@@ -7,8 +7,8 @@ Todo
 # To set up
 Create your own MySQL database with the free music library data available online. You will need to create a few additional tables, such as User, PlaylistUser, Review, ReviewUser, etc.
 
-# Note on JWT secret  
-The JWT secret here is a test credential. Ensure to regenerate the JWT secret string. All JWT credentials will thereafter be different.
+# Note on Secrets/Passwords 
+All passwords and secrets in this project have been revoked.
 
 # (No longer works) To add RDS connection with pgAdmin 4
 1. **(Saif:)** send me your home IP and your IP when you're at Western and I will add you to the firewall whitelist
