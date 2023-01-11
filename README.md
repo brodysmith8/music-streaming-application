@@ -4,7 +4,10 @@
 # Technologies Used
 Todo  
 
-# To add RDS connection with pgAdmin 4
+# To set up
+Create your own MySQL database with the free music library data available online. You will need to create a few additional tables, such as User, PlaylistUser, Review, ReviewUser, etc.
+
+# (No longer works) To add RDS connection with pgAdmin 4
 1. **(Saif:)** send me your home IP and your IP when you're at Western and I will add you to the firewall whitelist
 2. Right click "servers" in the browser in the left pane
 3. Click `register` -> `server`
