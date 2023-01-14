@@ -10,7 +10,7 @@ Create your own MySQL database with the free music library data available online
 # Note on Secrets/Passwords 
 All passwords and secrets in this project have been revoked.
 
-# (No longer works) To add RDS connection with pgAdmin 4
+# (RDS has since been decommissioned) To add RDS connection with pgAdmin 4
 1. **(Saif:)** send me your home IP and your IP when you're at Western and I will add you to the firewall whitelist
 2. Right click "servers" in the browser in the left pane
 3. Click `register` -> `server`
